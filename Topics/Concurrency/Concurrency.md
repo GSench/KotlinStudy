@@ -50,7 +50,7 @@ flowchart TB
     L --> PC
 ```
 
-![CPUs](/img/2024-04-25_01-29-21.png)
+![CPUs](img/2024-04-25_01-29-21.png)
 
 ![ThreadsExecution](img/2024-04-25_01-30-14.png)
 
