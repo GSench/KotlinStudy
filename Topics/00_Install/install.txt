@@ -1,0 +1,5 @@
+https://kotlinlang.org/docs/command-line.html#manual-install
+Downloaded latest release;
+Unzipped kotlinc into D:\Programing\Kotlin
+Added D:\Programing\Kotlin\kotlinc\bin to Path
+https://github.com/JetBrains/kotlin/releases
