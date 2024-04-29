@@ -11,8 +11,12 @@
             "id": "ebe352409ae124fb",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "Topics/Concurrency/Concurrency.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
         ]
@@ -81,6 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "Topics/Concurrency/Concurrency.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -97,6 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "Topics/Concurrency/Concurrency.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -118,7 +124,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "Topics/Concurrency/Concurrency.md"
+              }
             }
           }
         ]
@@ -139,5 +147,26 @@
     }
   },
   "active": "ebe352409ae124fb",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "Topics/05_Classes/Classes.md",
+    "Topics/Concurrency/img/2024-02-13_04-19-59.png",
+    "Topics/Concurrency/img/Life_cycle_of_a_Thread_in_Java.jpg",
+    "Topics/Concurrency/img/ThreadLifecycle.png",
+    "Topics/Concurrency/img/2024-04-25_01-30-14.png",
+    "Topics/Concurrency/img/2024-04-25_01-32-57.png",
+    "Topics/Concurrency/img/2024-04-25_01-29-21.png",
+    "Topics/Concurrency/img/2024-02-13_04-18-06.png",
+    "Topics/Concurrency/img",
+    "Topics/Concurrency/Concurrency.md",
+    "Topics/Concurrency",
+    "Topics/04_11_Functions/Functions.md",
+    "Topics/04_11_Functions/Lambdas.md",
+    "Topics/04_11_Functions/Extensions.md",
+    "Topics/03_Basics/Basics.md",
+    "Topics/02_CodingConventions/Coding conventions﻿.md",
+    "Topics/01_HelloWorld/notes/compiler.md",
+    "Books/Library.md",
+    "Books/kotlin-reference.pdf",
+    "Books/kotlin-reference.txt"
+  ]
 }
