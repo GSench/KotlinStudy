@@ -18,8 +18,33 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "ae2a73645b927bfc",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Topics/Concurrency/MemoryModel.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "439fd1219f94e6ce",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Topics/Concurrency/JavaThread.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -85,7 +110,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/Concurrency/Concurrency.md",
+                "file": "Topics/Concurrency/JavaThread.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +127,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/Concurrency/Concurrency.md",
+                "file": "Topics/Concurrency/JavaThread.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +150,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/Concurrency/Concurrency.md"
+                "file": "Topics/Concurrency/JavaThread.md"
               }
             }
           }
@@ -146,14 +171,16 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "ebe352409ae124fb",
+  "active": "439fd1219f94e6ce",
   "lastOpenFiles": [
+    "Topics/Concurrency/MemoryModel.md",
+    "Topics/Concurrency/Concurrency.md",
+    "Topics/Concurrency/JavaThread.md",
     "Topics/Concurrency/img/blocking-queue.png",
     "Topics/Concurrency/img/concurrency-models-6.png",
     "Topics/Concurrency/img/concurrency-models-3.png",
     "Topics/Concurrency/img/concurrency-models-1.png",
     "Topics/Concurrency/img/ThreadLifecycle.png",
-    "Topics/Concurrency/Concurrency.md",
     "Topics/Concurrency/img/concurrency-vs-parallelism-4.png",
     "Topics/Concurrency/img/concurrency-vs-parallelism-3.png",
     "Topics/Concurrency/img/concurrency-vs-parallelism-3.png.crdownload",
@@ -163,7 +190,6 @@
     "Books/Library.md",
     "Topics/05_Classes/Classes.md",
     "Topics/Concurrency/img/2024-02-13_04-19-59.png",
-    "Topics/Concurrency/img/Life_cycle_of_a_Thread_in_Java.jpg",
     "Topics/Concurrency/img",
     "Topics/Concurrency",
     "Topics/04_11_Functions/Functions.md",
