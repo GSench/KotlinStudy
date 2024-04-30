@@ -6,10 +6,61 @@
 - [Jenkov - Java Concurrency and Multithreading Tutorial](https://jenkov.com/tutorials/java-concurrency/index.html)
 - [Kotlin - Asynchronous programming techniques](https://kotlinlang.org/docs/async-programming.html)
 
-Java **<u>Concurrency</u>** is a term that covers multithreading, concurrency and parallelism on the Java platform. That includes the Java concurrency tools, problems and solutions.
+**<u>Concurrency</u>** is the ability of different parts or units of a program, algorithm, or problem to be executed out-of-order or in partial order, without affecting the outcome.
 
-Multithreading means that you have multiple _threads of execution_ inside the same application.
-## Process and Thread
+[*Java Concurrency*](https://jenkov.com/tutorials/java-concurrency/index.html) is a term that covers *multithreading*, *concurrency* and *parallelism* on the Java platform. That includes the Java concurrency tools, problems and solutions.
+
+### [Concurrency vs. Parallelism](https://jenkov.com/tutorials/java-concurrency/concurrency-vs-parallelism.html)
+
+**<u>Multithreading</u>** means that you have multiple _threads of execution_ inside the same application. This means that an application is making progress on more than one task - at the same time (concurrently).
+
+![concurrency-vs-parallelism-1](img/concurrency-vs-parallelism-1.png)
+  
+[**Parallel computing**](https://en.wikipedia.org/wiki/Parallel_computing) is a type of computation in which many calculations or processes are carried out simultaneously. Parallel execution is when a computer has more than one CPU or CPU core, and makes progress on more than one task simultaneously.
+
+![concurrency-vs-parallelism-2](img/concurrency-vs-parallelism-2.png)
+
+It is possible to have parallel concurrent execution, where threads are distributed among multiple CPUs. Thus, the threads executed on the same CPU are executed concurrently, whereas threads executed on different CPUs are executed in parallel.
+
+![concurrency-vs-parallelism-3](img/concurrency-vs-parallelism-3.png)
+
+A **<u>parallelism</u>** means that an application splits its tasks up into smaller subtasks which can be processed in parallel, for instance on multiple CPUs at the exact same time. Thus, parallelism does not refer to the same execution model as parallel concurrent execution.
+
+![concurrency-vs-parallelism-4](img/concurrency-vs-parallelism-4.png)
+
+### [Concurrency Models](https://jenkov.com/tutorials/java-concurrency/concurrency-models.html)
+
+A **<u>concurrency model</u>** specifies how threads in the the system collaborate to complete the tasks they are are given. Different concurrency models split the tasks in different ways, and the threads may communicate and collaborate in different ways.
+
+A **<u>state</u>** is some data, typically one or more objects. **<u>Shared</u>**/**<u>Separate</u>** *state* means that the different threads in the system will share / do not share some state among them.
+
+The most common *cuncurrency models* are:
+#### Parallel workers
+
+A *delegator* distributes the incoming jobs to different *workers*. Each worker completes the full job. The workers work in parallel, running in different threads, and possibly on different CPUs.
+
+![concurrency-models-1](img/concurrency-models-1.png)
+
+( + ) The advantage of this model is: to increase the parallelization level of the application you just add more workers.
+
+( - ) The disadvantages of this model are related with shared state concurrency problems: race conditions problem, deadlock, waiting for accessing the blocking shared data structures and so on.
+
+#### Assembly Line
+
+The workers are organized like workers at an assembly line in a factory. Each worker only performs a part of the full job. When that part is finished the worker forwards the job to the next worker. Systems using an assembly line concurrency model are also sometimes called _reactive systems_, or _event driven systems_. The system's workers react to events occurring in the system, either received from the outside world or emitted by other workers.
+
+![concurrency-models-3](concurrency-models-3.png)
+
+( + ) The advantages of this model are: *no shared state* (implementing a worker as if it was a singlethreaded implementation), *stateful workers* (can keep the data they need to operate in memory, since no other threads modify their data), *better hardware conformity* (more optimized data structures and algorithms when singlethreaded mode), *job ordering is possible* (much easier to track the state of a system at any time).
+
+( - ) The main disadvantage of this model is that the execution of a job is often spread out over multiple workers, and thus over multiple classes in your project. Worker code is sometimes written as callback handlers: nested callback, _callback hell_.
+
+#### Functional parallelism
+
+A program is implemented with function calls. Functions are "agents" or "actors" that send messages to each other, just like in the assembly line concurrency model (AKA reactive or event driven systems). All parameters passed to the function are copied, so no entity outside the receiving function can manipulate the data. This copying is essential to avoiding race conditions on the shared data. This makes the function execution similar to an atomic operation. Each function call can be executed independently of any other function call, so each function call can be executed on separate CPUs. The hard part about functional parallelism is knowing which function calls to parallelize.
+
+
+### [Process and Thread](https://docs.oracle.com/javase/tutorial/essential/concurrency/procthread.html)
 
 In concurrent programming, there are two basic units of execution: **<u>processes</u>** and **<u>threads</u>**.
 
@@ -50,13 +101,20 @@ flowchart TB
     L --> PC
 ```
 
+A process may run on different CPUs:
+
 ![CPUs](img/2024-04-25_01-29-21.png)
+
+A single CPU switches between all threads launched on this CPU. The switching time \[C\] is essential.
 
 ![ThreadsExecution](img/2024-04-25_01-30-14.png)
 
-## Java Thread
+
+## [Java Thread](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html)
 
 Each thread is associated with an instance of the class [`Thread`](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html).
+
+A `Thread` is a thread of execution in a program. The JVM allows an application to have multiple threads of execution running concurrently. Every thread has a priority. Threads with higher priority are executed in preference to threads with lower priority.
 
 ```kotlin
 fun main(){
@@ -71,7 +129,7 @@ fun main(){
 }
 ```
 
-Kotlin's [`fun thread(){ }`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.concurrent/thread.html)
+A Thread can also be started with Kotlin's [`fun thread(){ }`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.concurrent/thread.html)
 
 ```kotlin
 fun main(){
@@ -83,6 +141,15 @@ fun main(){
 	} // starting created Thread
 }
 ```
+
+#### Thread properties
+
+- `static Thread.currentThread(): Thread` - Returns a reference to the currently executing thread object.
+- `.name: String` - the thread's name.
+- `.id: Long` - the thread's identifier.
+- `.priority: Int` - the thread's priority.
+- `.state: Thread.State` - the thread's state.
+- `.isAlive(): Boolean` - Tests if this thread is alive.
 
 ### Lifecycle
 
@@ -108,11 +175,13 @@ Thread.currentThread().state: Thread.State
 val thread = Thread{}
 println(thread.state) // NEW
 ```
+
 2. **RUNNABLE** - either running or ready for execution but it’s waiting for resource allocation
 ```kotlin
 val thread = thread{}
 println(thread.state) // RUNNABLE
 ```
+
 3. **BLOCKED** - waiting to acquire a monitor lock to enter or re-enter a synchronized block/method
 ```kotlin
 val lock = Any()
@@ -121,6 +190,7 @@ val thread = thread{ synchronized(lock){} }
 Thread.sleep(1) // just to make thread pass RUNNABLE state
 println(thread.state) // BLOCKED
 ```
+
 4. **WAITING** - waiting for some other thread to perform a particular action without any time limit
 ```kotlin
 val threadA = thread { Thread.sleep(10) }  
@@ -128,18 +198,21 @@ val threadB = thread{ threadA.join() }
 Thread.sleep(1) // just to make thread pass RUNNABLE state
 println(threadB.state) // WAITING
 ```
+
 5. **TIMED_WAITING** - waiting for some other thread to perform a specific action for a specified period
 ```kotlin
 val thread = thread{Thread.sleep(10)}  
 Thread.sleep(1) // just to make thread pass RUNNABLE state  
 println(thread.state) // TIMED_WAITING
 ```
+
 6. **TERMINATED** - has completed its execution
 ```kotlin
 val thread = thread{}  
 thread.join()  
 println(thread.state) // TERMINATED
 ```
+
 
 ### Thread control methods
 
@@ -278,32 +351,150 @@ A: Finished
 B: Finished
 ```
 
-##### BlockingQueue with wait & notify
+##### Missed Signals Problem
 
-https://stackoverflow.com/questions/2536692/a-simple-scenario-using-wait-and-notify-in-java
+The methods `notify()` and `notifyAll()` do not save the method calls to them in case no threads are waiting when they are called. The notify signal is then just lost. Therefore, if a thread calls notify() before the thread to signal has called wait(), the signal will be missed by the waiting thread. This may result in the waiting thread waiting forever.
 
-```java
-public class BlockingQueue<T> {
-    private Queue<T> queue = new LinkedList<T>();
-    private int capacity;
-    public BlockingQueue(int capacity) {
-        this.capacity = capacity;
+To avoid losing signals they should be stored inside the signal class.
+
+```kotlin
+val monitor = Any()  
+var signalled = false
+thread {  
+    println("A: Started")  
+    Thread.sleep(25)  
+    println("A: Finishing work")  
+    synchronized(monitor){  
+        println("A: Notifying")
+        signalled = true
+        (monitor as java.lang.Object).notify()  
+        println("A: Notification sent, but we need to release monitor")  
+        Thread.sleep(10)  
+        println("A: Releasing monitor")  
     }
-    public synchronized void offer(T element) throws InterruptedException {
-	    // waiting until free space in queue
-        while(queue.size() >= capacity) wait(); // monitor is this
-        queue.offer(element);
-        notify(); // notifyAll() for multiple producer/consumer threads
+    Thread.sleep(10)
+    println("A: Finished")  
+}  
+thread{  
+    println("B: Started")  
+    Thread.sleep(50)
+    synchronized(monitor){  
+        println("B: Waiting")
+        if(!signalled) (monitor as java.lang.Object).wait()
+        println("B: Notification received")  
+        Thread.sleep(10)  
+        println("B: Releasing monitor")  
     }
-    public synchronized T poll() throws InterruptedException {
-	    // waiting until any element in queue
-        while(queue.isEmpty()) wait();
-        T item = queue.poll();
-        notify(); // notifyAll() for multiple producer/consumer threads
-        return item;
-    }
+    Thread.sleep(10)
+    println("B: Finished")  
 }
 ```
+```output
+A: Started
+B: Started
+A: Finishing work
+A: Notifying
+A: Notification sent, but we need to release monitor
+A: Releasing monitor
+B: Waiting
+B: Notification received
+A: Finished
+B: Releasing monitor
+B: Finished
+```
+
+##### Spurious Wakeups Problem
+
+For inexplicable reasons it is possible for threads to wake up even if `notify()` and `notifyAll()` has not been called. This is known as spurious wakeups. Wakeups without any reason.
+
+To guard against spurious wakeups the signal member variable is checked inside a while loop instead of inside an if-statement. Such a while loop is also called a spin lock.
+
+```kotlin
+val monitor = Any()  
+var signalled = false
+thread {  
+    println("A: Started")  
+    Thread.sleep(25)  
+    println("A: Finishing work")  
+    synchronized(monitor){  
+        println("A: Notifying")
+        signalled = true
+        (monitor as java.lang.Object).notify()  
+        println("A: Notification sent, but we need to release monitor")  
+        Thread.sleep(10)  
+        println("A: Releasing monitor")  
+    }
+    Thread.sleep(10)
+    println("A: Finished")  
+}  
+thread{  
+    println("B: Started")
+    synchronized(monitor){  
+        println("B: Waiting")
+        while(!signalled) (monitor as java.lang.Object).wait()
+        println("B: Notification received")  
+        Thread.sleep(10)  
+        println("B: Releasing monitor")  
+    }
+    Thread.sleep(10)
+    println("B: Finished")  
+}
+```
+```output
+A: Started
+B: Started
+B: Waiting
+A: Finishing work
+A: Notifying
+A: Notification sent, but we need to release monitor
+A: Releasing monitor
+B: Notification received
+B: Releasing monitor
+A: Finished
+B: Finished
+```
+
+
+
+##### Multiple Threads Waiting for the Same Signals
+
+The while loop is also a nice solution if you have multiple threads waiting, which are all awakened using `notifyAll()`, but only one of them should be allowed to continue. Only one thread at a time will be able to obtain the lock on the monitor object, meaning only one thread can exit the `wait()` call and clear the `signalled` flag. Once this thread then exits the synchronized block, the other threads can exit the `wait()` call and check the `signalled` variable inside the while loop. However, this flag was cleared by the first thread waking up, so the rest of the awakened threads go back to waiting, until the next signal arrives.
+
+
+
+##### Don't call `wait()` on constant `String`'s or global objects
+
+The problem with calling wait() and notify() on the empty string `val monitor = ""`, or any other constant string is, that the JVM/Compiler internally translates constant strings into the same object. That means, that even if you have two different monitors, they both reference the same empty string instance.
+
+
+##### BlockingQueue with wait & notify
+
+- https://jenkov.com/tutorials/java-concurrency/blocking-queues.html
+- https://stackoverflow.com/questions/2536692/a-simple-scenario-using-wait-and-notify-in-java
+
+A blocking queue is a queue that blocks when you try to dequeue from it and the queue is empty, or if you try to enqueue items to it and the queue is already full. A thread trying to dequeue from an empty queue is blocked until some other thread inserts an item into the queue. A thread trying to enqueue an item in a full queue is blocked until some other thread makes space in the queue, either by dequeuing one or more items or clearing the queue completely.
+
+![blocking-queue](blocking-queue.png)
+
+```kotlin
+class BlockingQueue<T>(val capacity: Int) {  
+    private val queue: Queue<T> = LinkedList()  
+    fun offer(element: T) = synchronized(this) {  
+        // waiting until free space in queue  
+        while (queue.size >= capacity) (this as Object).wait() // monitor is this  
+        queue.offer(element)  
+        (this as Object).notifyAll()  
+    }  
+    fun poll(): T  = synchronized(this) {  
+        // waiting until any element in queue  
+        while (queue.isEmpty()) (this as Object).wait()  
+        val item = queue.poll()  
+        (this as Object).notifyAll()  
+        return item  
+    }  
+}
+```
+
 
 #### Interruption
 
@@ -318,9 +509,9 @@ public class BlockingQueue<T> {
 - **If none of the previous conditions hold then this thread's interrupt status will be set.**
 - Interrupting a thread that is not alive need not have any effect.
 
-`Thread.currentThread().isInterrupted` - Tests whether this thread has been interrupted. The _interrupted status_ of the thread is unaffected by this method.
+`.isInterrupted` - Tests whether this thread has been interrupted. The _interrupted status_ of the thread is unaffected by this method.
 
-`Thread.interrupted()` - Tests whether the current thread has been interrupted. The _interrupted status_ of the thread is cleared by this method.
+`.interrupted()` - Tests whether the current thread has been interrupted. The _interrupted status_ of the thread is cleared by this method.
 
 **Interruption is cooperative!** If no Exception case is occured, we need to check interrupt status during Thread execution if we expecting one.
 
@@ -472,7 +663,7 @@ Thread interrupted
 
 ### Memory Model
 
-- https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.4.5
+- https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.4
 - https://jenkov.com/tutorials/java-concurrency/java-memory-model.html
 - https://jenkov.com/tutorials/java-concurrency/java-happens-before-guarantee.html
 
@@ -480,23 +671,234 @@ A **<u>memory model</u>** describes whether the execution trace is a legal execu
 
 The memory model describes **possible behaviors** of a program. An implementation is free to produce any code it likes, as long as *all resulting executions of a program produce a result that can be predicted by the memory model*. This provides a great deal of freedom for the implementor to perform a myriad of **code transformations**, including the **reordering of actions** and **removal of unnecessary synchronization**.
 
-- The memory model determines what values can be read at every point in the program. Memory that can be shared between threads is called _shared memory_ or _heap memory_. Local variables, formal method parameters, and exception handler parameters are never shared between threads and are unaffected by the memory model.
-- An _inter-thread action_ is an action performed by one thread that can be detected or directly influenced by another thread:
-	- _Read_ (normal, or non-volatile). Reading a variable.
-	- _Write_ (normal, or non-volatile). Writing a variable.
-    - _Synchronization actions_, which are:
-	    - _Volatile read_. A volatile read of a variable.
-	    - _Volatile write_. A volatile write of a variable.
-	    - _Lock_. Locking a monitor
-	    - _Unlock_. Unlocking a monitor.
-	    - The (synthetic) first and last action of a thread.
-	    - Actions that start a thread or detect that a thread has terminated
-	- _External Actions_. An external action is an action that may be observable outside of an execution, and has a result based on an environment external to the execution.
-	- _Thread divergence actions_: performed by a thread that is in an infinite loop in which no memory, synchronization, or external actions are performed
-- Among all the inter-thread actions performed by each thread _t_, the _program order_ of _t_ is a total order that reflects the order in which these actions would be performed according to the intra-thread semantics of _t_. A set of actions is _sequentially consistent_ if all actions occur in a total order (the execution order) that is consistent with program order, and furthermore, each read _r_ of a variable _v_ sees the value written by the write _w_ to _v_ such that:
-	- _w_ comes before _r_ in the execution order, and
-    - there is no other write _w_' such that _w_ comes before _w_' and _w_' comes before _r_ in the execution order.
-- Every execution has a _synchronization order_. A synchronization order is a total order over all of the synchronization actions of an execution.
+#### Shared Memory
+
+Memory that can be shared between threads is called _shared memory_ or _heap memory_. Local variables, formal method parameters, and exception handler parameters are never shared between threads and are unaffected by the memory model.
+
+#### Actions
+
+An **<u>inter-thread action</u>** is an action performed by one thread that can be detected or directly influenced by another thread:
+- *Read* (non-volatile). Reading a variable.
+- *Write* (non-volatile). Writing a variable.
+- *Synchronization actions*, which are:
+	- *Volatile read*. A volatile read of a variable.
+	- *Volatile write*. A volatile write of a variable.
+	- *Lock*. Locking a monitor
+	- *Unlock*. Unlocking a monitor.
+	- The (synthetic) first and last action of a thread.
+	- Actions that start a thread or detect that a thread has terminated
+- *External Actions* - actions that may be observable outside of an execution, and has a result based on an environment external to the execution.
+- *Thread divergence actions*: performed by a thread that is in an infinite loop in which no memory, synchronization, or external actions are performed. They allow to model how a thread may cause all other threads to stall and fail to make progress.
+
+#### Intra-thread Semantics and Program Order
+
+https://stackoverflow.com/questions/25711048/understanding-intra-thread-semantics
+
+The *memory model* determines what values can be read at every point in the program.
+The program obeys **<u>intra-thread semantics</u>**: The actions of each thread in isolation must behave as governed by the semantics of that thread, with the exception that the values seen by each read are determined by the *memory model*.
+
+*Intra-thread semantics* are the semantics for single-threaded programs, and allow the complete prediction of the behavior of a thread based on the values seen by read actions within the thread. 
+
+```kotlin
+var a = 0
+var b = 0
+var c = 0
+a = 1
+b = 2
+c = 2
+c = b + 1
+b = a + c
+```
+
+The result of this program is values of `a=1`, `b=4`, `c=3`. But actions execution order may differ from code order:
+
+```kotlin
+// actions rearragnged for some reason, as they dont contradict to each other:
+var c = 0
+var b = 0
+var a = 0
+b = 2
+// c = 2 // this action is ignored, as c is overridden further 
+c = b + 1 // (b = 2) must be executed before this action
+a = 1
+b = a + c // (a = 1) and (c = b + 1) must be executed before this action
+```
+
+*Intra-thread semantics* are violated if some JVM implementation execute actions in order:
+
+```kotlin
+var a = 0
+var b = 0
+var c = 0
+a = 1
+c = 2
+c = b + 1 // VIOLATION! b is read before write!
+b = 2 // VIOLATION! b is read before write!
+b = a + c
+```
+
+In fact *intra-thread semantics* prescribe read-write order:
+
+```kotlin
+// ... some actions, that dont affect a
+a = 1
+// ... some actions, that dont affect a
+// ... some actions, that dont affect a
+b = a + 1 // (a = 1) MAY BE executed ANYWHEN in the interval [a=1 action; read a action)
+```
+
+The result of this program is always `a==1`, `b==2` regardless of the true `a = 1` execution order.
+
+The **<u>program order</u>** is a total order in which *inter-thread actions* would be performed according to the *intra-thread semantics*.
+
+A set of actions is **<u>sequentially consistent</u>** if all actions occur in a total order (the execution order) that is consistent with *program order*, and furthermore, each read of a variable sees the value written by that write such that:
+- write comes before read in the execution order
+- there is no other write that comes between write and read in the execution order.
+
+To determine if the actions of thread `t` in an execution are legal, we simply evaluate the implementation of thread `t` as it would be performed in a single-threaded context, as defined in the rest of this specification.
+
+```kotlin
+var a = 0
+var b = 0
+var c = 0
+var d = 0
+val threadA = thread {
+    a = 1
+    b = 2
+    b = a + b
+}
+val threadB = thread {
+    c = 1
+    c = 2
+    d = c + 2
+}
+```
+
+After compilation the result actions execution consequence may be:
+
+```kotlin
+// actions rearragnged for some reason, as they dont contradict to each other:
+/*mainThread*/ var d = 0
+/*mainThread*/ var c = 0
+/*mainThread*/ var b = 0
+/*mainThread*/ var a = 0
+
+// actions of threadA and threadB may go in any order while they dont violate JMM rules
+/*threadB*/ // c = 1 // this action is ignored, as c is overridden further 
+/*threadB*/ c = 2
+/*threadA*/ b = 2 // actions a = 1 and b = 2 of threadA are executed in reverse order, as they dont contradict to each other
+/*threadB*/ d = c + 2 // Intra-thread semantics prescribe to read c as 2 here
+/*threadA*/ a = 1 // actions a = 1 and b = 2 of threadA are executed in reverse order, as they dont contradict to each other
+/*threadA*/ b = a + b // Intra-thread semantics prescribe to read a as 1 and b as 2 here
+```
+
+If we decompile it back, the program will look like:
+
+```kotlin
+var d = 0
+var c = 0
+var b = 0
+var a = 0
+val threadA = thread {
+    b = 2
+    a = 1
+    b = a + b
+}
+val threadB = thread {
+    //c = 1
+    c = 2
+    d = c + 2
+}
+```
+
+And the program's result (values of `a==1`, `b==3`, `c==2`, `d==4`) remains the same, because the program obeys to *intra-thread semantics* of the final program order.
+
+The *intra-thread semantics* of `threadA`:
+
+```kotlin
+//c = 2
+b = 2
+//d = c + 2
+a = 1
+b = a + b
+```
+
+The *intra-thread semantics* of `threadB`:
+
+```kotlin
+c = 2
+//b = 2
+d = c + 2
+//a = 1
+//b = a + b
+```
+
+Each time the evaluation of thread generates an *inter-thread action*, it must match the *inter-thread action* that comes next in *program order*. If the action is a read, then further evaluation of thread uses the value seen by that read action as determined by the *memory model*.
+
+It may seems like multithread programs can violate *intra-thread semantics*:
+
+```kotlin
+var c = 0
+val tA = thread { c =  1 }
+val tB = thread { c = -1 }
+ta.join()
+tb.join()
+println(c)
+```
+
+There are 2 possible *program orders*, because the position of the actions `(c=1)`,`(c=-1)` is not defined relative to each other: no constraints by *memory model*.
+
+```kotlin
+var c = 0
+// some actions, that dont affect c
+c = 1 // by thread tA
+// some actions, that dont affect c
+c = -1 // by thread tB
+// some actions, that dont affect c
+println(c) // reading c=-1 here
+
+var c = 0
+// some actions, that dont affect c
+c = -1 // by thread tB
+// some actions, that dont affect c
+c = 1 // by thread tA
+// some actions, that dont affect c
+println(c) // reading c=1 here
+```
+
+But *intra-thread semantics* **are not violated**, as any `write c` action is executed **before** `read c` action. The order of write actions is undefined, because there are no constraints. The behavior of the program is still predictable: `c = ` either `1` or `-1`.  It is impossible to violate *intra-thread semantics*, because these rules are something that compiler and JVM implementation must obey.
+
+```kotlin
+var c = 0
+val tA = thread {
+	c =  1
+}
+val tB = thread {
+	tA.join()
+	c = -1
+}
+ta.join()
+tb.join()
+println(c)
+```
+
+Now program order is:
+
+```kotlin
+var c = 0
+c =  1
+c = -1
+println(c)
+```
+
+because `tA.join()` in thread `tB` applied a constraint, that is taken into account by *memory model*.
+
+#### Synchronization Order
+
+Every execution has a _synchronization order_. A synchronization order is a total order over all of the synchronization actions of an execution.
+
+#### Happens-before Relationship
+
 - Two actions can be ordered by a _happens-before_ relationship. If one action _happens-before_ another, then the first is visible to and ordered before the second.
 	- An unlock on a monitor _happens-before_ every subsequent lock on that monitor.
 	- A write to a `volatile` field _happens-before_ every subsequent read of that field.
