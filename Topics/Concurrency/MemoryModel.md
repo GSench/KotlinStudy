@@ -170,34 +170,32 @@ d = c + 2
 //b = a + b
 ```
 
-It may seems like multithread programs can violate *intra-thread semantics*:
+An important notice on the result of a thread in multithread programs.
 
 ```kotlin
 var a = 0
-var b = 0
 var c = 0
-thread {
+val threadA = thread {
 	c = 1
 	a = c
 }
-thread {
+val threadB = thread {
 	c = -1
-	b = c
 }
 ```
 
-*Intra-thread semantics* **are not be violated**, as any `write c` action is executed **before** `read c` action. The order of `write c` actions is undefined inter-thread, because there are no constraints. The behavior of the program is still predictable and total execution order may be:
+These actions of both threads may appear in total execution order as follows:
 
 ```kotlin
-| c = 1    | c = 1    | c = 1    | c = -1   | c = -1   | c = -1
-| a = c    | c = -1   | c = -1   | b = c    | c = 1    | c = 1 
-| c = -1   | a = c    | b = c    | c = 1    | a = c    | b = c 
-| b = c    | b = c    | a = c    | a = c    | b = c    | a = c 
+/*threadA*/ c = 1
+/*threadB*/ c = -1
+/*threadA*/ a = c
 ```
 
-According to *intra-thread semantics* any other total execution order is impossible (there are $4!-6=18$ left).
+And the result of this program is `a=-1`, but not `a=1`, like it would be if `threadA` was executed in isolation. It may seems like such multithread program violates *intra-thread semantics*, but it's not.
 
-It is impossible to violate *intra-thread semantics*, because these rules are something that compiler and JVM implementation must obey.
+*Intra-thread semantics* only guarrants **the execution order** of both threads **within these threads**. `write c` action in `threadA` is executed **before** `read c` action in `threadA`. `threadB` interfered into program logic and executed `write c` action. The order of `write c` actions is undefined inter-thread, because there are no memory model constraints. Thus `threadA` actions became inconsistent with the results of this thread. But *intra-thread semantics* **was not violated**! It is impossible to violate *intra-thread semantics*, because these rules are something that compiler and JVM implementation must obey.
+
 ## Program Order
 
 The **<u>program order</u>** is a total order in which *inter-thread actions* would be performed according to the *intra-thread semantics*.
@@ -208,67 +206,107 @@ A set of actions is **<u>sequentially consistent</u>** if all actions occur in a
 
 Each time the evaluation of a thread generates an *inter-thread action*, it must match the *inter-thread action* that comes next in *program order*. If the action is a read, then further evaluation of thread uses the value seen by that read action as determined by the *memory model*.
 
-It may seems like multithread programs can violate *intra-thread semantics*:
+Considering the example:
 
 ```kotlin
+var a = 0
+var b = 0
 var c = 0
-val tA = thread { c =  1 }
-val tB = thread { c = -1 }
-ta.join()
-tb.join()
-println(c)
-```
-
-There are 2 possible *program orders*, because the position of the actions `(c=1)`,`(c=-1)` is not defined relative to each other: no constraints by *memory model*.
-
-```kotlin
-var c = 0
-// some actions, that dont affect c
-c = 1 // by thread tA
-// some actions, that dont affect c
-c = -1 // by thread tB
-// some actions, that dont affect c
-println(c) // reading c=-1 here
-
-// or
-
-var c = 0
-// some actions, that dont affect c
-c = -1 // by thread tB
-// some actions, that dont affect c
-c = 1 // by thread tA
-// some actions, that dont affect c
-println(c) // reading c=1 here
-```
-
-But *intra-thread semantics* **are not violated**, as any `write c` action is executed **before** `read c` action. The order of write actions is undefined, because there are no constraints. The behavior of the program is still predictable: `c = ` either `1` or `-1`.  It is impossible to violate *intra-thread semantics*, because these rules are something that compiler and JVM implementation must obey.
-
-Although this program is *sequentially inconsistent*, because in case `c = -1` is executed after `c = 1`, there is an other write that comes between write and read in the execution order (the same for the other case `c=-1` `c=1`). To fix this we can add some constraint, that prescribe *memory model* to execute these action in exact order:
-
-```kotlin
-var c = 0
-val tA = thread {
-	c =  1
+val threadA = thread {
+	c = 1
+	a = c
 }
-val tB = thread {
-	tA.join()
+val threadB = thread {
 	c = -1
+	
+	b = c
 }
-ta.join()
-tb.join()
-println(c)
 ```
 
-Now program order is:
+There are $4!=24$ possible *program orders*, depending on the order of 4 actions in both threads. *Intra-thread semantics* restricts possible *program orders* because `write c` actions in both threads must be executed before `read c` actions in both threads. So all the possible *program orders* are:
 
 ```kotlin
-var c = 0
-c =  1
-c = -1
-println(c)
+| c = 1    | c = 1    | c = 1    | c = -1   | c = -1   | c = -1
+| a = c    | c = -1   | c = -1   | b = c    | c = 1    | c = 1 
+| c = -1   | a = c    | b = c    | c = 1    | a = c    | b = c 
+| b = c    | b = c    | a = c    | a = c    | b = c    | a = c 
 ```
 
-because `tA.join()` in thread `tB` applied a constraint, that is taken into account by *memory model*.
+According to *intra-thread semantics* any other total execution order is impossible (there are $4!-6=18$ left).
+
+Although this program is *sequentially inconsistent*, because in case `c = -1` is executed after `c = 1`, there is an other write that comes between write and read in the execution order (the same for the opposite case `c=-1` `c=1`). To fix this we can add some constraint, that prescribe *memory model* to execute these action in exact order:
+
+```kotlin
+var a = 0
+var b = 0
+var c = 0
+val monitor = Any()
+var wasNotified = false
+val threadA = thread {
+	c = 1
+	synchronized(monitor){
+		wasNotified = true
+		(monitor as java.lang.Object).notify()
+	}
+	a = c
+}
+val threadB = thread {
+	synchronized(monitor){
+		while(!wasNotified)
+			(monitor as java.lang.Object).wait()
+	}
+	c = -1
+	b = c
+}
+```
+
+Now all the possible *program orders* are:
+
+```kotlin
+| c = 1    | c = 1    | c = 1
+| a = c    | c = -1   | c = -1
+| c = -1   | a = c    | b = c
+| b = c    | b = c    | a = c
+```
+
+because `(monitor as java.lang.Object).wait()` in thread `threadB` applied a constraint, that is taken into account by *memory model*.
+
+But this program is still *sequentially inconsistent*: the order of actions `c=1`, `c=-1` is still undefined relatively to `a=c`. We need to add stronger constraint:
+
+```kotlin
+var a = 0
+var b = 0
+var c = 0
+val threadA = thread {
+	c = 1
+	a = c
+}
+val threadB = thread {
+	threadA.join()
+	c = -1
+	b = c
+}
+```
+
+Now the only possible *program order* is:
+
+```kotlin
+| c = 1
+| a = c
+| c = -1
+| b = c
+```
+
+And this program is *sequentially consistent*.
+
+*Sequential consistency* is a very strong guarantee that is made about visibility and ordering in an execution of a program. Within a sequentially consistent execution, there is a *total order* over all individual actions (such as reads and writes) which is consistent with the order of the program, and each individual action is atomic and is immediately visible to every thread.
+
+If a program has no *data races*, then all executions of the program will appear to be *sequentially consistent*.
+
+From the lecture [Java Memory Model ...and the pragmatics of it: by Aleksey Shipilev](https://shipilev.net/blog/2014/jmm-pragmatics/) ([presentation slides](https://shipilev.net/talks/narnia-2555-jmm-pragmatics-en.pdf)):
+
+> The program order does not provide the ordering guarantees. The only reason it exists is to provide the link between possible executions and the original program. Given the simple schematics of actions and executions, you can construct an infinite number of executions. These executions are detached from any reality; they are just the "primordial soup", containing everything possible by construction. Somewhere in this soup float the executions which can explain a particular outcome of the given program, and the set of all such plausible executions cover all plausible outcomes of the program. Here is where Program Order (PO) jumps in. To filter out the executions we can take to reason about the particular program, we have **intra-thread consistency** rules, which eliminate all unrelated executions. Intra-thread consistency is the very first execution filter, which most people do implicitly in their heads when dealing with JMM.
+
 
 ## Synchronization Order
 
@@ -282,6 +320,11 @@ Every execution has a _synchronization order_. A synchronization order is a tota
 	- A call to `start()` on a thread _happens-before_ any actions in the started thread.
 	- All actions in a thread _happen-before_ any other thread successfully returns from a `join()` on that thread.
 	- The default initialization of any object _happens-before_ any other actions (other than default-writes) of a program.
+
+## Well-Formed Executions
+
+## `final` Field Semantics
+
 
 ## Most common multithread errors
 

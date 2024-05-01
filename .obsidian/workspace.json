@@ -94,8 +94,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "a505d0aa9a1abaa1",
@@ -174,9 +173,13 @@
   },
   "active": "ae2a73645b927bfc",
   "lastOpenFiles": [
-    "Topics/Concurrency/Concurrency.md",
-    "Topics/Concurrency/JavaThread.md",
+    "Topics/Coroutines/Flows.md",
+    "Topics/Coroutines/Coroutines.md",
     "Topics/Concurrency/MemoryModel.md",
+    "Topics/Coroutines/img",
+    "Topics/Coroutines",
+    "Topics/Concurrency/JavaThread.md",
+    "Topics/Concurrency/Concurrency.md",
     "Topics/Concurrency/img/blocking-queue.png",
     "Topics/Concurrency/img/concurrency-models-6.png",
     "Topics/Concurrency/img/concurrency-models-3.png",
