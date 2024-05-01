@@ -44,7 +44,7 @@
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -94,7 +94,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "a505d0aa9a1abaa1",
@@ -110,7 +111,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/Concurrency/JavaThread.md",
+                "file": "Topics/Concurrency/MemoryModel.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +128,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/Concurrency/JavaThread.md",
+                "file": "Topics/Concurrency/MemoryModel.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -150,7 +151,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/Concurrency/JavaThread.md"
+                "file": "Topics/Concurrency/MemoryModel.md"
               }
             }
           }
@@ -171,11 +172,11 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "439fd1219f94e6ce",
+  "active": "ae2a73645b927bfc",
   "lastOpenFiles": [
-    "Topics/Concurrency/MemoryModel.md",
     "Topics/Concurrency/Concurrency.md",
     "Topics/Concurrency/JavaThread.md",
+    "Topics/Concurrency/MemoryModel.md",
     "Topics/Concurrency/img/blocking-queue.png",
     "Topics/Concurrency/img/concurrency-models-6.png",
     "Topics/Concurrency/img/concurrency-models-3.png",
