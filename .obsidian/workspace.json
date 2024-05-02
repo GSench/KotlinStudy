@@ -25,7 +25,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Concurrency/MemoryModel.md",
+                "file": "Topics/Coroutines/Coroutines.md",
                 "mode": "source",
                 "source": false
               }
@@ -110,7 +110,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/Concurrency/MemoryModel.md",
+                "file": "Topics/Coroutines/Coroutines.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +127,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/Concurrency/MemoryModel.md",
+                "file": "Topics/Coroutines/Coroutines.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -150,7 +150,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/Concurrency/MemoryModel.md"
+                "file": "Topics/Coroutines/Coroutines.md"
               }
             }
           }
@@ -173,12 +173,12 @@
   },
   "active": "ae2a73645b927bfc",
   "lastOpenFiles": [
-    "Topics/Coroutines/Flows.md",
+    "Topics/Concurrency/JavaThread.md",
     "Topics/Coroutines/Coroutines.md",
     "Topics/Concurrency/MemoryModel.md",
+    "Topics/Coroutines/Flows.md",
     "Topics/Coroutines/img",
     "Topics/Coroutines",
-    "Topics/Concurrency/JavaThread.md",
     "Topics/Concurrency/Concurrency.md",
     "Topics/Concurrency/img/blocking-queue.png",
     "Topics/Concurrency/img/concurrency-models-6.png",
