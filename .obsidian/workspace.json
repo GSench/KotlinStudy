@@ -13,19 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Concurrency/Concurrency.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "ae2a73645b927bfc",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Topics/Coroutines/Coroutines.md",
+                "file": "Topics/Concurrency/JavaThread.md",
                 "mode": "source",
                 "source": false
               }
@@ -37,14 +25,26 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Concurrency/JavaThread.md",
+                "file": "Topics/Concurrency/MemoryModel.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "cd0cbda52b2596b2",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Topics/Coroutines/Coroutines.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -171,15 +171,15 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "ae2a73645b927bfc",
+  "active": "cd0cbda52b2596b2",
   "lastOpenFiles": [
-    "Topics/Concurrency/JavaThread.md",
-    "Topics/Coroutines/Coroutines.md",
     "Topics/Concurrency/MemoryModel.md",
+    "Topics/Coroutines/Coroutines.md",
+    "Topics/Concurrency/JavaThread.md",
+    "Topics/Concurrency/Concurrency.md",
     "Topics/Coroutines/Flows.md",
     "Topics/Coroutines/img",
     "Topics/Coroutines",
-    "Topics/Concurrency/Concurrency.md",
     "Topics/Concurrency/img/blocking-queue.png",
     "Topics/Concurrency/img/concurrency-models-6.png",
     "Topics/Concurrency/img/concurrency-models-3.png",
