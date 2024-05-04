@@ -12,7 +12,7 @@
 
 ### [Concurrency vs. Parallelism](https://jenkov.com/tutorials/java-concurrency/concurrency-vs-parallelism.html)
 
-**<u>Multithreading</u>** means that you have multiple _threads of execution_ inside the same application. This means that an application is making progress on more than one task - at the same time (concurrently).
+**<u>Multithreading</u>** means that you have multiple _threads of execution_ inside the same application. **<u>Concurrency</u>** means that an application is making progress on more than one task - at the same time (concurrently).
 
 ![concurrency-vs-parallelism-1](img/concurrency-vs-parallelism-1.png)
   

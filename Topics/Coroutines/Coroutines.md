@@ -6,7 +6,7 @@
 A **<u>coroutine</u>** is an instance of a suspendable computation. It is conceptually similar to a thread, in the sense that it takes a block of code to run that works concurrently with the rest of the code. However, a coroutine is not bound to any particular thread. It may suspend its execution in one thread and resume in another one.
 
 In Java each thread is associated with an instance of the class `Thread`.
-In Kotlin such class is [`AbstractCoroutine`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/AbstractCoroutine.kt) and [`ScopeCoroutine: AbstractCoroutine`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/internal/Scopes.kt)
+In Kotlin such class is [`AbstractCoroutine`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/AbstractCoroutine.kt) or [`ScopeCoroutine: AbstractCoroutine`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/internal/Scopes.kt)
 
 `CoroutineScope` common [builders](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/Builders.common.kt) create
 - `DeferredCoroutine: AbstractCoroutine`
@@ -19,27 +19,27 @@ And probably some other classes.
 
 None of this classes are instantiated explicitly (like `Thread t = new Thread(...);`).
 
-We use
-- `Job` to manage *coroutine* lifecycle and its children
-- `Dispatcher` to manage *coroutine* threads
-- `CoroutineExceptionHandler` to handle *coroutine* exceptions
-- `CoroutineContext` to store, combine and access *coroutine* properties (incl. `Job`, `Dispatcher` and `CoroutineExceptionHandler`)
-- `CoroutineScope` to build coroutines and manage them by `CoroutineContext`
+In practice we use:
+
+- `CoroutineContext` to store, combine and access *coroutine* properties (incl. `Job`, `CoroutineDispatcher` and `CoroutineExceptionHandler`)
+- `CoroutineScope` (that incapsulse `CoroutineContext`) to build coroutines and manage them by `CoroutineContext` elements.
+
+This is only an illustration of using coroutines:
 
 ```kotlin
-fun main() {
-	println("Main started")
-	GlobalScope.launch { // this: CoroutineScope
-		println("Main coroutine started")
-	    launch { // launch a new coroutine and continue
-	        println("Coroutine started")
-	        delay(1000) // non-blocking delay for 1 second
-	        println("Coroutine finished")
-	    }
-	    // main coroutine continues while a previous one is delayed
-	    println("Main coroutine finished, but waits until its child finishes")
-	}
-	println("Main finished")
+fun main() {  
+    println("Main started")  
+    runBlocking { // this: CoroutineScope  
+        println("Main coroutine started")  
+        launch { // launch a new coroutine and continue  
+            println("Coroutine started")  
+            delay(1000) // non-blocking delay for 1 second  
+            println("Coroutine finished")  
+        }  
+        // main coroutine continues while a previous one is delayed  
+        println("Main coroutine finished, but waits until its child finishes")  
+    }  
+    println("Main finished")  
 }
 ```
 ```output
@@ -53,7 +53,7 @@ Main finished
 
 ## [suspend functions](https://kotlinlang.org/docs/composing-suspending-functions.html)
 
-`suspend fun` can *suspend* execution of a coroutine. Suspending functions can be used only inside *coroutines* or other `suspend fun`.
+`suspend fun` can *suspend* execution of a coroutine. Suspending functions can be used only inside coroutines or other `suspend fun`.
 
 The `suspend` modifier does nothing by itself. The `suspend` modifier indicates that this is a function that can suspend execution of a coroutine. A modifier `suspend` may be used on any function: top-level function, extension function, member function, local function, or operator function.
 
@@ -98,6 +98,184 @@ Completed in 2021 ms
 
 When `suspendCoroutine` is called inside a coroutine (and it can _only_ be called inside a coroutine, because it is a suspending function) it captures the execution state of a coroutine in a _continuation_ instance and passes this continuation to the specified `block` as an argument. To resume execution of the coroutine, the block invokes `continuation.resumeWith()` (either directly or using `continuation.resume()` or `continuation.resumeWithException()` extensions) in this thread or in some other thread at some later time. The _actual_ suspension of a coroutine happens when the `suspendCoroutine` block returns without invoking `resumeWith`. If continuation was resumed before returning from inside of the block, then the coroutine is not considered to have been suspended and continues to execute. The result passed to `continuation.resumeWith()` becomes the result of `suspendCoroutine` call, which, in turn, becomes the result of `.await()`.
 
+[`coroutineContext`](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/coroutine-context.html) is a top-level property that is available in all suspending functions to retrieve the `CoroutineContext` of the current coroutine.
+## CoroutineContext
+
+- https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html
+- https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/
+- https://github.com/Kotlin/KEEP/blob/master/proposals/coroutines.md#coroutine-context
+- https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/src/kotlin/coroutines/CoroutineContext.kt
+
+`CoroutineСontext` is a persistent set of user-defined objects that can be attached to the coroutine. Each coroutine always executes in the context represented by elements of `CoroutineСontext`, which are responsible for various aspects of coroutine execution.
+
+`CoroutineСontext` is an indexed set of elements, where each element has a unique key. It is a mix between a set and a map.
+
+```kotlin
+public interface CoroutineContext {
+    public operator fun <E : Element> get(key: Key<E>): E?
+	...
+	// Key for the elements of [CoroutineContext].
+    public interface Key<E : Element>
+    // An element of the [CoroutineContext]. An element of the coroutine context is a singleton context by itself.
+    public interface Element : CoroutineContext {
+        public val key: Key<*>
+        public override operator fun <E : Element> get(key: Key<E>): E? =
+            @Suppress("UNCHECKED_CAST")
+            if (this.key == key) this as E else null
+        ...
+    }
+}
+```
+
+During this section we only consider the following objects like elements of `CoroutineСontext`. Their detailed explanation is described further.
+
+### `CoroutineСontext` elements:
+
+#### `Job`
+
+`Job` allows to manage coroutine lifecycle and its children.
+
+```kotlin
+public interface Job : CoroutineContext.Element {
+    // Key for [Job] instance in the coroutine context.
+    public companion object Key : CoroutineContext.Key<Job>
+```
+
+#### `CoroutineDispatcher`
+
+allows to manage *coroutine* threads policy
+
+```kotlin
+public abstract class CoroutineDispatcher :
+    AbstractCoroutineContextElement(ContinuationInterceptor), ... {
+    public companion object Key : AbstractCoroutineContextKey<ContinuationInterceptor, CoroutineDispatcher>(
+        ContinuationInterceptor,
+        { it as? CoroutineDispatcher })
+```
+
+#### `CoroutineExceptionHandler`
+
+allows to handle *coroutine* exceptions.
+
+```kotlin
+public interface CoroutineExceptionHandler : CoroutineContext.Element {
+    // Key for [CoroutineExceptionHandler] instance in the coroutine context.
+    public companion object Key : CoroutineContext.Key<CoroutineExceptionHandler>
+```
+
+#### `CoroutineName`
+
+allows to add a `String` name to a coroutine.
+
+```kotlin
+public data class CoroutineName(...) : AbstractCoroutineContextElement(CoroutineName) {
+	// Key for [CoroutineName] instance in the coroutine context.
+    public companion object Key : CoroutineContext.Key<CoroutineName>
+```
+
+
+#### Custom `CoroutineContext.Element`
+
+All third-party context elements shall extend [`AbstractCoroutineContextElement`](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-abstract-coroutine-context-element/) class. The following style is recommended for library defined context elements. The example below shows a hypothetical authorization context element that stores current user name:
+
+```kotlin
+class AuthUser(val name: String) : AbstractCoroutineContextElement(AuthUser) {
+    companion object Key : CoroutineContext.Key<AuthUser>
+}
+suspend fun doSomething() {
+    val currentUser = coroutineContext[AuthUser]?.name ?: throw SecurityException("unauthorized")
+    // do something user-specific
+}
+```
+
+### `CoroutineСontext` composition
+
+Thus, each element [`CoroutineСontext.Element`](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/-element/) of the `CoroutineСontext` **IS** `CoroutineСontext` itself (as it implements ` : CoroutineContext.Element : CoroutineContext`). An element of the coroutine context is a singleton context by itself.
+
+```kotlin
+val job: CoroutineContext = Job()
+```
+
+`companion object Key` allows to `get` elements of `CoroutineСontext` by class (as `companion object` resolved statically):
+
+```kotlin
+// we can get an element of CoroutineContext with its
+// operator fun <E : CoroutineContext.Element> get(key: CoroutineContext.Key<E>): E?
+val job = coroutineContext[Job.Key] // Job.Key : CoroutineContext.Key<Job>
+// or just
+val job = coroutineContext[Job] // here Job is treated as its companion object Key
+```
+
+e.g., creating a new `Job`, we are also creating `CoroutineContext` that contains that `Job` as its element:
+
+```kotlin
+val job = Job()
+assert(job == job[Job]) // true
+```
+
+`CoroutineСontext` also provides a `fold`, `plus` and `minusKey` functions, which allows to compose `CoroutineСontext`s.
+
+```kotlin
+    // Accumulates entries of this context starting with [initial] value and applying [operation] from left to right to current accumulator value and each element of this context.
+    public fun <R> fold(initial: R, operation: (R, Element) -> R): R
+
+	// Returns a context containing elements from this context and elements from the other [context]. The elements from this context with the same key as in the other one are dropped.
+    public operator fun plus(context: CoroutineContext): CoroutineContext {...}
+
+	// Returns a context containing elements from this context, but without an element with the specified [key].
+    public fun minusKey(key: Key<*>): CoroutineContext
+
+	public interface Element : CoroutineContext {
+		...
+        public override fun <R> fold(initial: R, operation: (R, Element) -> R): R =
+            operation(initial, this)
+        public override fun minusKey(key: Key<*>): CoroutineContext =
+            if (this.key == key) EmptyCoroutineContext else this
+```
+
+`operator fun plus` union `CoroutineСontext` sets with priority to the elements of the right operand:
+
+```
+CoroutineContext_A { Job_A, CoroutineDispatcher_A }
++
+CoroutineContext_B { Job_B, CoroutineExceptionHandler_B }
+=
+CoroutineContext_C { Job_B, CoroutineDispatcher_A, CoroutineExceptionHandler_B }
+```
+
+Thus we can construct `CoroutineСontext` using its elements (as each element of the `CoroutineСontext` is `CoroutineСontext`):
+
+```kotlin
+val coroutineContext = Job() + Dispatchers.Default + CoroutineExceptionHandler{_,_->}  
+coroutineContext.fold(""){ str, elem -> "".also { println(elem) } }
+```
+```output
+JobImpl{Active}@5e265ba4
+ThreadsKt$main$$inlined$CoroutineExceptionHandler$1@156643d4
+Dispatchers.Default
+```
+
+```kotlin
+fun CoroutineContext.print() = println(fold(""){ str, elem -> "$str$elem; " })  
+val coroutineContextA = Job() + Dispatchers.Default  
+val coroutineContextB = Job() + CoroutineExceptionHandler {_,_->}  
+val coroutineContext = coroutineContextA + coroutineContextB  
+coroutineContextA.print()  
+println("+")  
+coroutineContextB.print()  
+println("=")  
+coroutineContext.print()
+```
+```output
+JobImpl{Active}@123772c4; Dispatchers.Default; 
++
+JobImpl{Active}@2d363fb3; ThreadsKt$main$$inlined$CoroutineExceptionHandler$1@7d6f77cc; 
+=
+JobImpl{Active}@2d363fb3; ThreadsKt$main$$inlined$CoroutineExceptionHandler$1@7d6f77cc; Dispatchers.Default; 
+```
+
+Standard library provides [`EmptyCoroutineContext`](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-empty-coroutine-context/) — an instance of `CoroutineContext` without any elements (empty).
+
 ## Job
 
 - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/
@@ -105,24 +283,13 @@ When `suspendCoroutine` is called inside a coroutine (and it can _only_ be calle
 
 A background job. `Job` is an abstraction on *coroutine* lifecycle.
 
-Jobs can be arranged into parent-child hierarchies where cancellation of a parent leads to immediate cancellation of all its children recursively. Failure of a child with an exception other than [CancellationException](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-cancellation-exception/index.html) immediately cancels its parent and, consequently, all its other children.
-
 All functions on `Job` interface and on all interfaces derived from it are **thread-safe** and can be safely invoked from concurrent coroutines without external synchronization.
-
-[`CoroutineStart`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/) defines start options for coroutines builders. It is used in `start` parameter of `launch`, `async`, and other coroutine builder functions.
-
-*Coroutine* start options are:
-- [DEFAULT](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/-d-e-f-a-u-l-t/index.html) - immediately schedules coroutine for execution according to its context;
-- [LAZY](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/-l-a-z-y/index.html) - starts coroutine lazily, only when it is needed;
-- [ATOMIC](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/-a-t-o-m-i-c/index.html) - atomically (in a non-cancellable way) schedules coroutine for execution according to its context;
-- [UNDISPATCHED](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/-u-n-d-i-s-p-a-t-c-h-e-d/index.html) - immediately executes coroutine until its first suspension point _in the current thread_.
-
 ### Job States
 
 A job has the following states:
 
-- ***New*** (optional initial state) - coroutine is created with `CoroutineStart.LAZY`
-- ***Active*** (default initial state)- coroutine is created with `CoroutineStart.DEFAULT` or started with `.start()` or `.join()`. A job is *active* while the coroutine is working or until it fails or cancelled.
+- ***New*** (optional initial state) - coroutine is created with `start=CoroutineStart.LAZY`
+- ***Active*** (default initial state)- coroutine is created with `start=CoroutineStart.DEFAULT` or started with `.start()` or `.join()`. A job is *active* while the coroutine is working or until it fails or cancelled.
 - ***Completing*** (transient state) - Completion of an *active* coroutine's body transitions the job to the *completing* state.
 - ***Cancelling*** (transient state) - Failure of an *active* job with an exception makes it *cancelling*. A job can be cancelled at any time with `cancel` function that forces it to transition to the *cancelling* state immediately.
 - ***Cancelled*** (final state) - The *cancelling* job becomes *cancelled* when it finishes executing its work **and all its children complete**.
@@ -149,7 +316,9 @@ flowchart TD
 
 ### Job Hierarchy
 
-A `Job` becomes a child of this `Job` when it is constructed with this job in its CoroutineContext or using an explicit `parent` parameter.
+Jobs can be arranged into parent-child hierarchies where cancellation of a parent leads to immediate cancellation of all its children recursively. Failure of a child with an exception other than `CancellationException` immediately cancels its parent and, consequently, all its other children.
+
+A `Job` becomes a child of this `Job` when it is constructed with this job in its `CoroutineContext` or using an explicit `parent` parameter.
 
 - [`children: Sequence<Job>`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/children.html) Returns a sequence of this job's children.
 - [`parent: Job?`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/parent.html) Returns the parent of the current job if the parent-child relationship is established or `null` if the job has no parent or was successfully completed.
@@ -159,17 +328,6 @@ A parent-child relation has the following effect:
 - Cancellation of parent with `cancel()` or its exceptional completion (failure) immediately cancels all its children.
 - Parent cannot complete until all its children are complete. Parent waits for all its children to complete in *completing* or *cancelling* state.
 - Uncaught exception in a child, by default, cancels parent. This applies even to children created with `async` and other future-like *coroutine builders*, even though their exceptions are caught and are encapsulated in their result.
-
-### Job.Key
-
-```kotlin
-public interface Job : CoroutineContext.Element {
-	public companion object Key : CoroutineContext.Key<Job>
-	...
-}
-```
-
-Key for `Job` instance in the `CoroutineContext`. This object allows to get a job instance from `CoroutineContext` with `coroutineContext[Job]`.
 
 ### Start and Join
 
@@ -197,44 +355,6 @@ This suspending function is cancellable and **always** checks for a cancellation
 
 
 ## CoroutineExceptionHandler
-
-
-## CoroutineContext
-
-- https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html
-- https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.coroutines/-coroutine-context/
-
-The `CoroutineContext` is a set of various elements. The main elements are the `Job` of the coroutine and its `Dispatcher`.
-
-[source](https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/src/kotlin/coroutines/CoroutineContext.kt)
-```kotlin
-public interface CoroutineContext {
-    public operator fun <E : Element> get(key: Key<E>): E?
-    /* Accumulates entries of this context starting with [initial] value and applying [operation] from left to right to current accumulator value and each element of this context. */
-    public fun <R> fold(initial: R, operation: (R, Element) -> R): R
-
-    /* Returns a context containing elements from this context and elements from the other [context]. The elements from this context with the same key as in the other one are dropped. */
-    public operator fun plus(context: CoroutineContext): CoroutineContext {...}
-
-// Returns a context containing elements from this context, but without an element with the specified [key].
-    public fun minusKey(key: Key<*>): CoroutineContext
-	
-	// Key for the elements of [CoroutineContext].
-    public interface Key<E : Element>
-
-    /* An element of the [CoroutineContext]. An element of the coroutine context is a singleton context by itself. */
-    public interface Element : CoroutineContext {
-        public val key: Key<*>
-        public override operator fun <E : Element> get(key: Key<E>): E? =
-            @Suppress("UNCHECKED_CAST")
-            if (this.key == key) this as E else null
-        public override fun <R> fold(initial: R, operation: (R, Element) -> R): R =
-            operation(initial, this)
-        public override fun minusKey(key: Key<*>): CoroutineContext =
-            if (this.key == key) EmptyCoroutineContext else this
-    }
-}
-```
 
 
 ## CoroutineScope
@@ -293,4 +413,13 @@ public fun CoroutineScope(context: CoroutineContext): CoroutineScope =
 ```kotlin
 public suspend fun <R> coroutineScope(block: suspend CoroutineScope.() -> R): R { ... }
 ```
+
+
+[`CoroutineStart`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/) defines start options for coroutines builders. It is used in `start` parameter of `launch`, `async`, and other coroutine builder functions.
+
+*Coroutine* start options are:
+- [DEFAULT](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/-d-e-f-a-u-l-t/index.html) - immediately schedules coroutine for execution according to its context;
+- [LAZY](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/-l-a-z-y/index.html) - starts coroutine lazily, only when it is needed;
+- [ATOMIC](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/-a-t-o-m-i-c/index.html) - atomically (in a non-cancellable way) schedules coroutine for execution according to its context;
+- [UNDISPATCHED](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/-u-n-d-i-s-p-a-t-c-h-e-d/index.html) - immediately executes coroutine until its first suspension point _in the current thread_.
 
