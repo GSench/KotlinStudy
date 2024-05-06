@@ -1,7 +1,7 @@
 # Coroutines
 
-- https://kotlinlang.org/docs/coroutines-guide.html
-- https://github.com/Kotlin/KEEP/blob/master/proposals/coroutines.md
+- [Kotlin Coroutines guide﻿](https://kotlinlang.org/docs/coroutines-guide.html)
+- [Coroutines design document (KEEP)](https://github.com/Kotlin/KEEP/blob/master/proposals/coroutines.md)
 
 A **<u>coroutine</u>** is an instance of a suspendable computation. It is conceptually similar to a thread, in the sense that it takes a block of code to run that works concurrently with the rest of the code. However, a coroutine is not bound to any particular thread. It may suspend its execution in one thread and resume in another one.
 
@@ -104,10 +104,10 @@ When `suspendCoroutine` is called inside a coroutine (and it can _only_ be calle
 [currentCoroutineContext](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/current-coroutine-context.html) returns the current `CoroutineContext` retrieved by using `coroutineContext`. This function is an alias to avoid name clash with `CoroutineScope.coroutineContext` in a receiver position.
 ## CoroutineContext
 
-- https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html
-- https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/
-- https://github.com/Kotlin/KEEP/blob/master/proposals/coroutines.md#coroutine-context
-- https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/src/kotlin/coroutines/CoroutineContext.kt
+- [Kotlin Coroutines guide﻿](https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html)
+- [API docs](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/)
+- [Coroutines design document (KEEP)](https://github.com/Kotlin/KEEP/blob/master/proposals/coroutines.md#coroutine-context)
+- [Source code](https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/src/kotlin/coroutines/CoroutineContext.kt)
 
 `CoroutineСontext` is a persistent set of user-defined objects that can be attached to the coroutine. Each coroutine always executes in the context represented by elements of `CoroutineСontext`, which are responsible for various aspects of coroutine execution.
 
@@ -130,11 +130,11 @@ public interface CoroutineContext {
 }
 ```
 
-During this section we only consider the following objects like elements of `CoroutineСontext`. Their detailed explanation is described further.
+During this section we consider the following objects only like elements of `CoroutineСontext`. Their detailed explanation is described further.
 
 ### `CoroutineСontext` elements:
 
-#### `Job`
+#### Job
 
 `Job` allows to manage coroutine lifecycle and its children.
 
@@ -144,9 +144,9 @@ public interface Job : CoroutineContext.Element {
     public companion object Key : CoroutineContext.Key<Job>
 ```
 
-#### `CoroutineDispatcher`
+#### CoroutineDispatcher
 
-allows to manage *coroutine* threads policy
+`CoroutineDispatcher` allows to manage *coroutine* threads policy
 
 ```kotlin
 public abstract class CoroutineDispatcher :
@@ -156,9 +156,9 @@ public abstract class CoroutineDispatcher :
         { it as? CoroutineDispatcher })
 ```
 
-#### `CoroutineExceptionHandler`
+#### CoroutineExceptionHandler
 
-allows to handle *coroutine* exceptions.
+`CoroutineExceptionHandler` allows to handle *coroutine* exceptions.
 
 ```kotlin
 public interface CoroutineExceptionHandler : CoroutineContext.Element {
@@ -166,9 +166,9 @@ public interface CoroutineExceptionHandler : CoroutineContext.Element {
     public companion object Key : CoroutineContext.Key<CoroutineExceptionHandler>
 ```
 
-#### `CoroutineName`
+#### CoroutineName
 
-allows to add a `String` name to a coroutine.
+`CoroutineName` allows to add a `String` name to a coroutine.
 
 ```kotlin
 public data class CoroutineName(...) : AbstractCoroutineContextElement(CoroutineName) {
@@ -185,6 +185,7 @@ All third-party context elements shall extend [`AbstractCoroutineContextElement`
 class AuthUser(val name: String) : AbstractCoroutineContextElement(AuthUser) {
     companion object Key : CoroutineContext.Key<AuthUser>
 }
+// inside of coroutine:
 suspend fun doSomething() {
     val currentUser = coroutineContext[AuthUser]?.name ?: throw SecurityException("unauthorized")
     // do something user-specific
