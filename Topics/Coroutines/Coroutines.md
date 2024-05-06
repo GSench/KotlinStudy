@@ -29,7 +29,7 @@ This is only an illustration of using coroutines:
 ```kotlin
 fun main() {  
     println("Main started")  
-    runBlocking { // this: CoroutineScope  
+    val mainJob = CoroutineScope(Dispatchers.Default).launch { // this: CoroutineScope  
         println("Main coroutine started")  
         launch { // launch a new coroutine and continue  
             println("Coroutine started")  
@@ -38,8 +38,9 @@ fun main() {
         }  
         // main coroutine continues while a previous one is delayed  
         println("Main coroutine finished, but waits until its child finishes")  
-    }  
-    println("Main finished")  
+    }
+    runBlocking { mainJob.join() } // process will be finished otherwise
+    println("Main finished")
 }
 ```
 ```output
@@ -284,6 +285,31 @@ JobImpl{Active}@2d363fb3; ThreadsKt$main$$inlined$CoroutineExceptionHandler$1@7d
 
 Standard library provides [`EmptyCoroutineContext`](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-empty-coroutine-context/) — an instance of `CoroutineContext` without any elements (empty).
 
+**`CoroutineСontext` is immutable**. Each time, we compose contexts, or modify any one, we get a new `CoroutineСontext`. e.g.:
+
+```kotlin
+val nameContext = CoroutineName("Some name")  
+val context = nameContext + Dispatchers.Default  
+val job = CoroutineScope(context).launch {  
+    delay(100)  
+    println("coroutineContext = $coroutineContext")  
+    println("inside coroutine: ${coroutineContext[CoroutineName]}")  
+}  
+println("nameContext = $nameContext")  
+println("context = $context")  
+println("job = $job")  
+println(job[CoroutineName]) // null  
+job.join()
+```
+```output
+nameContext = CoroutineName(Some name)
+context = [CoroutineName(Some name), Dispatchers.Default]
+job = StandaloneCoroutine{Active}@18e8568
+null
+coroutineContext = [CoroutineName(Some name), StandaloneCoroutine{Active}@18e8568, Dispatchers.Default]
+inside coroutine: CoroutineName(Some name)
+```
+
 ## Job
 
 - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/
@@ -293,17 +319,35 @@ A background job. `Job` is an abstraction on *coroutine* lifecycle.
 
 All functions on `Job` interface and on all interfaces derived from it are **thread-safe** and can be safely invoked from concurrent coroutines without external synchronization.
 
-A `Job` can be created using [standard function](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/Job.kt#L108):
+A `Job` can be created using the standard function `Job(parent:Job?)`, but usually a `Job` is created with *coroutine builders*.
 
 ```kotlin
-public fun Job(parent: Job? = null): CompletableJob = JobImpl(parent)
+// using fun Job():
+val job = Job() // this is not a Job constructor, as Job is an interface
+// using coroutine builder launch {}:
+val job = launch {...}
 ```
 
-But usually a `Job` is created with coroutine builders.
+**`launch` always creates a new couroutine and a `Job` associated with it.** There is no way to provide an existing `Job` instance for `launch`.
+
+`launch` returns the `Job` only. There is no other elements of `CoroutineContext` of `CoroutineScope` of `launch` presented in this `Job`:
 
 ```kotlin
-val job = Job() // this is not a Job constructor, as Job is an interface
-val job = launch {...}
+val job = CoroutineScope(Dispatchers.Default + CoroutineName("Some name")).launch {  
+    println("coroutineContext = $coroutineContext")  
+    println("inside coroutine: CoroutineName = ${coroutineContext[CoroutineName]}")  
+    delay(100)  
+}  
+delay(100)  
+println("job = $job")  
+println("outside coroutine: CoroutineName = ${job[CoroutineName]}") // null  
+job.join()
+```
+```output
+coroutineContext = [CoroutineName(Some name), StandaloneCoroutine{Active}@2c9b3971, Dispatchers.Default]
+inside coroutine: CoroutineName = CoroutineName(Some name)
+job = StandaloneCoroutine{Active}@2c9b3971
+outside coroutine: CoroutineName = null
 ```
 
 ### Job States
@@ -343,43 +387,53 @@ Jobs can be arranged into parent-child hierarchies where cancellation of a paren
 - [`children: Sequence<Job>`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/children.html) Returns a sequence of this job's children.
 - [`parent: Job?`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/parent.html) Returns the parent of the current job if the parent-child relationship is established or `null` if the job has no parent or was successfully completed.
 
+#### Building `Job` relationships with `CoroutineContext`
+
 A `Job C` becomes a child of `Job P` when it is constructed with this `Job P` in its `CoroutineContext`.
 
 ```kotlin
-val parentJob = launch {
-    println("inside of launch parentJob = ${coroutineContext.job}")
-    val childJob1 = launch {
-        delay(100)
-        println("childJob1 = ${coroutineContext.job}")
-        println("childJob1.parent = ${coroutineContext.job.parent}")
-    }
-    println("parentJob created childJob1: $childJob1")
-    val childJob2 = launch {
-        delay(200)
-        println("childJob2 = ${coroutineContext.job}")
-        println("childJob2.parent = ${coroutineContext.job.parent}")
-    }
-    println("parentJob created childJob2: $childJob2")
-    println("parentJob.children:")
-    coroutineContext.job.children.forEach { println(it) }
-}
-println("parentJob = $parentJob")
+val parentJob = launch {  
+    println("inside of launch parentJob = ${coroutineContext.job}")  
+    val childJob1 = launch {  
+        delay(100)  
+        println("inside of launch childJob1 = ${coroutineContext.job}")  
+        println("childJob1.parent = ${coroutineContext.job.parent}")  
+        delay(300)  
+    }  
+    println("childJob1 = $childJob1")  
+    val childJob2 = launch {  
+        delay(200)  
+        println("inside of launch childJob2 = ${coroutineContext.job}")  
+        println("childJob2.parent = ${coroutineContext.job.parent}")  
+        delay(200)  
+    }  
+    println("childJob2 = $childJob2")  
+    println("inside of launch parentJob.children:")  
+    coroutineContext.job.children.forEach { println(it) }  
+}  
+delay(300)  
+println("parentJob = $parentJob")  
+println("parentJob.children:")  
+parentJob.children.forEach { println(it) }
 ```
 ```output:
-parentJob = StandaloneCoroutine{Active}@60215eee
-inside of launch parentJob = StandaloneCoroutine{Active}@60215eee
-parentJob created childJob1: StandaloneCoroutine{Active}@67117f44
-parentJob created childJob2: StandaloneCoroutine{Active}@2471cca7
+inside of launch parentJob = StandaloneCoroutine{Active}@63d4e2ba
+childJob1 = StandaloneCoroutine{Active}@33a10788
+childJob2 = StandaloneCoroutine{Active}@7cdbc5d3
+inside of launch parentJob.children:
+StandaloneCoroutine{Active}@33a10788
+StandaloneCoroutine{Active}@7cdbc5d3
+inside of launch childJob1 = StandaloneCoroutine{Active}@33a10788
+childJob1.parent = StandaloneCoroutine{Completing}@63d4e2ba
+inside of launch childJob2 = StandaloneCoroutine{Active}@7cdbc5d3
+childJob2.parent = StandaloneCoroutine{Completing}@63d4e2ba
+parentJob = StandaloneCoroutine{Completing}@63d4e2ba
 parentJob.children:
-StandaloneCoroutine{Active}@67117f44
-StandaloneCoroutine{Active}@2471cca7
-childJob1 = StandaloneCoroutine{Active}@67117f44
-childJob1.parent = StandaloneCoroutine{Completing}@60215eee
-childJob2 = StandaloneCoroutine{Active}@2471cca7
-childJob2.parent = StandaloneCoroutine{Completing}@60215eee
+StandaloneCoroutine{Active}@33a10788
+StandaloneCoroutine{Active}@7cdbc5d3
 ```
 
-###### |CUT| How this works:
+##### How this works:
 
 `launch` is the extension fun of `CoroutineScope`. It use  its parent's `CoroutineContext` to build  the new child's `CoroutineContext`, which uses parent's `CoroutineContext` elements, but the new child `Job`. This child `Job` is attached to the parent `Job` (which can be retrieved from parent's `CoroutineContext`) and returned from `launch { }`.
 
@@ -441,23 +495,103 @@ public open class JobSupport (active: Boolean) : Job, ChildJob, ParentJob {
         @Suppress("DEPRECATION")
         val handle = parent.attachChild(this) // this: JobSupport: ChildJob
 ```
-###### |CUT| finish
 
-A `Job` can be created using an explicit `parent` parameter:
+
+#### Building `Job` relationships with `launch{context}`
+
+We can establish parent-child relationships with `context` parameter of `lauch {}` coroutine builder:
+
+[launch](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/launch.html):
+> The coroutine context is inherited from the `CoroutineScope`. Additional context elements can be specified with `context` argument. The parent job is inherited from a `CoroutineScope` as well, but it can also be overridden with a corresponding `context` element.
+
+**IMPORTANT NOTICE**: `launch` always creates a new couroutine and, consequently, associated `Job`.
 
 ```kotlin
-val parentJob = launch {  
+val parentJob = someScope.launch {...}
+val childJob = someOtherScope.launch(context = parentJob) {...}
+```
+
+Note that in such case, no other `CoroutineContext` elements are inherited from `someScope`, as `parentJob` is the `Job` only.
+
+We can achieve the same results with the previouse approach:
+
+```kotlin
+val parentJob = someScope.launch {
+	...
+	val childJob = someOtherScope.launch {...}
+}
+```
+
+Here `parentJob` and `childJob` have different `CoroutineScope` (`CoroutineContext` elements), but they are still in a parent-child relationships.
+
+```kotlin
+val parentJob = CoroutineScope(Dispatchers.Default).launch {  
     delay(100)  
     println("inside of launch parentJob = ${coroutineContext.job}")  
     delay(250)  
-    println("parentJob.children:")  
+    println("inside of launch parentJob.children:")  
+    coroutineContext.job.children.forEach { println(it) }  
+}  
+println("parentJob = $parentJob")  
+  
+val childJob1 = CoroutineScope(Dispatchers.Default).launch(context = parentJob) {
+    delay(200)  
+    println("inside of launch childJob1 = ${coroutineContext.job}")  
+    println("childJob1.parent = ${coroutineContext.job.parent}")  
+    delay(200)  
+}  
+println("childJob1 = $childJob1")  
+  
+val childJob2 = CoroutineScope(Dispatchers.Default).launch(context = parentJob) {  
+    delay(300)  
+    println("inside of launch childJob2 = ${coroutineContext.job}")  
+    println("childJob2.parent = ${coroutineContext.job.parent}")  
+    delay(100)  
+}  
+println("childJob2 = $childJob2")
+println("parentJob.children:")  
+parentJob.children.forEach { println(it) }
+```
+```output
+parentJob = StandaloneCoroutine{Active}@5479e3f
+childJob1 = StandaloneCoroutine{Active}@66133adc
+childJob2 = StandaloneCoroutine{Active}@5d3411d
+parentJob.children:
+StandaloneCoroutine{Active}@66133adc
+StandaloneCoroutine{Active}@5d3411d
+inside of launch parentJob = StandaloneCoroutine{Active}@5479e3f
+inside of launch childJob1 = StandaloneCoroutine{Active}@66133adc
+childJob1.parent = StandaloneCoroutine{Active}@5479e3f
+inside of launch childJob2 = StandaloneCoroutine{Active}@5d3411d
+childJob2.parent = StandaloneCoroutine{Active}@5479e3f
+inside of launch parentJob.children:
+StandaloneCoroutine{Active}@66133adc
+StandaloneCoroutine{Active}@5d3411d
+```
+
+##### How this works:
+
+The same as building `Job` relationships with `CoroutineContext`, but now `val newContext = coroutineContext + parentJob` in `CoroutineScope.launch`.
+
+#### Building `Job` relationships with `fun Job()`
+
+A `Job` can be created as a child of another `Job` using an explicit `parent` parameter of `fun Job()`.
+
+Such `Job A` is not associated with any coroutine. A coroutine (and associated `Job B`) can be created with previouse approach using a *coroutine builder*. We can provide `Job A` as context `parameter`, so that `launch`ed `Job B` becomes the child `Job` of `Job A`.  Such `Job A` enables to manage `Job B` lifecycle over paren-child relationships.
+
+```kotlin
+val parentJob = CoroutineScope(Dispatchers.Default).launch {  
+    delay(100)  
+    println("inside of launch parentJob = ${coroutineContext.job}")  
+    delay(250)  
+    println("inside of launch parentJob.children:")  
     coroutineContext.job.children.forEach { println("$it -> ${it.children.first()}") }  
 }  
 println("parentJob = $parentJob")  
   
 val childJob1 = Job(parentJob)  
 println("childJob1 = $childJob1")  
-val childSubJob1 = launch(context = childJob1) { // launch always creates a new job  
+val childSubJob1 = CoroutineScope(Dispatchers.Default).launch(context = childJob1) {
     delay(200)  
     println("inside of launch childSubJob1 = ${coroutineContext.job}")  
     println("childSubJob1.parent = childJob1 = ${coroutineContext.job.parent}")  
@@ -470,7 +604,7 @@ childJob1.complete() // parentJob will infinitely wait this Job otherwise
   
 val childJob2 = Job(parentJob)  
 println("childJob2 = $childJob2")  
-val childSubJob2 = launch(context = childJob2) { // launch always creates a new job  
+val childSubJob2 = CoroutineScope(Dispatchers.Default).launch(context = childJob2) { 
     delay(300)  
     println("inside of launch childSubJob2 = ${coroutineContext.job}")  
     println("childSubJob2.parent = childJob2 = ${coroutineContext.job.parent}")  
@@ -480,29 +614,60 @@ val childSubJob2 = launch(context = childJob2) { // launch always creates a new 
 println("childSubJob2 = $childSubJob2")  
 // CompletableJob will stay active even if its children are completed, so we need to complete it explicitly  
 childJob2.complete() // parentJob will infinitely wait this Job otherwise
+println("parentJob.children:")  
+parentJob.children.forEach { println("$it -> ${it.children.first()}") }
 ```
 ```output
-parentJob = StandaloneCoroutine{Active}@60215eee
-childJob1 = JobImpl{Active}@7d4793a8
-childSubJob1 = StandaloneCoroutine{Active}@5479e3f
-childJob2 = JobImpl{Active}@763d9750
-childSubJob2 = StandaloneCoroutine{Active}@2be94b0f
-inside of launch parentJob = StandaloneCoroutine{Active}@60215eee
-inside of launch childSubJob1 = StandaloneCoroutine{Active}@5479e3f
-childSubJob1.parent = childJob1 = JobImpl{Completing}@7d4793a8
-childSubJob1.parent?.parent = childJob1.parent = StandaloneCoroutine{Active}@60215eee
-inside of launch childSubJob2 = StandaloneCoroutine{Active}@2be94b0f
-childSubJob2.parent = childJob2 = JobImpl{Completing}@763d9750
-childSubJob2.parent?.parent = childJob2.parent = StandaloneCoroutine{Active}@60215eee
+parentJob = StandaloneCoroutine{Active}@5479e3f
+childJob1 = JobImpl{Active}@27082746
+childSubJob1 = StandaloneCoroutine{Active}@7bfcd12c
+childJob2 = JobImpl{Active}@6aceb1a5
+childSubJob2 = StandaloneCoroutine{Active}@ba4d54
 parentJob.children:
-JobImpl{Completing}@7d4793a8 -> StandaloneCoroutine{Active}@5479e3f
-JobImpl{Completing}@763d9750 -> StandaloneCoroutine{Active}@2be94b0f
+JobImpl{Completing}@27082746 -> StandaloneCoroutine{Active}@7bfcd12c
+JobImpl{Completing}@6aceb1a5 -> StandaloneCoroutine{Active}@ba4d54
+inside of launch parentJob = StandaloneCoroutine{Active}@5479e3f
+inside of launch childSubJob1 = StandaloneCoroutine{Active}@7bfcd12c
+childSubJob1.parent = childJob1 = JobImpl{Completing}@27082746
+childSubJob1.parent?.parent = childJob1.parent = StandaloneCoroutine{Active}@5479e3f
+inside of launch childSubJob2 = StandaloneCoroutine{Active}@ba4d54
+childSubJob2.parent = childJob2 = JobImpl{Completing}@6aceb1a5
+childSubJob2.parent?.parent = childJob2.parent = StandaloneCoroutine{Active}@5479e3f
+inside of launch parentJob.children:
+JobImpl{Completing}@27082746 -> StandaloneCoroutine{Active}@7bfcd12c
+JobImpl{Completing}@6aceb1a5 -> StandaloneCoroutine{Active}@ba4d54
 ```
 
-###### |CUT| How this works:
+##### How this works:
 
+[`fun Job(parent)`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/Job.kt) looks like:
 
-###### |CUT| finish
+```kotlin
+public fun Job(parent: Job? = null): CompletableJob = JobImpl(parent)
+```
+
+[`JobImpl`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/JobSupport.kt) just invokes `initParentJob` on init:
+
+```kotlin
+internal open class JobImpl(parent: Job?) : JobSupport(true), CompletableJob {  
+    init { initParentJob(parent) }
+```
+
+[`initParentJob`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/JobSupport.kt) is:
+
+```kotlin
+public open class JobSupport (active: Boolean) : Job, ChildJob, ParentJob {
+...
+    protected fun initParentJob(parent: Job?) {
+        ...
+        parent.start() // make sure the parent is started
+        @Suppress("DEPRECATION")
+        val handle = parent.attachChild(this) // this: JobSupport: ChildJob
+```
+
+The further inheritance of created `Job` as the parent of the `launch`ed `Job` works like in Building `Job` relationships with `launch{context}`.
+
+#### Completion, Cancellation and Throwing in Hierarchy
 
 A parent-child relation has the following effect:
 
