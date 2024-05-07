@@ -381,6 +381,162 @@ flowchart TD
     Cancelling -->|finish|Cancelled
 ```
 
+#### New -> Active -> Completing -> Completed
+
+```kotlin
+val printJobState = {j: Job ->  
+    println("${j.toString().replace("LazyStandaloneCoroutine","coroutine").split("@")[0]}; " +  
+            "isActive = ${j.isActive}; " +  
+            "isCompleted = ${j.isCompleted}; " +  
+            "isCancelled = ${j.isCancelled}") }  
+val job = CoroutineScope(Dispatchers.Default).launch(start = CoroutineStart.LAZY) {  
+    println("job started")  
+    launch {  
+        println("child job started")  
+        delay(300)  
+        println("child job finished")  
+    }  
+    delay(100)  
+    println("job finished")  
+}  
+println("job created")  
+printJobState(job)  
+println("start job")  
+job.start()  
+printJobState(job)  
+delay(200)  
+printJobState(job)  
+delay(200)  
+printJobState(job)
+```
+```output
+job created
+coroutine{New}; isActive = false; isCompleted = false; isCancelled = false
+start job
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+job started
+child job started
+job finished
+coroutine{Completing}; isActive = true; isCompleted = false; isCancelled = false
+child job finished
+coroutine{Completed}; isActive = false; isCompleted = true; isCancelled = false
+```
+
+#### New -> Active -> Cancelling (by cancel) -> Cancelled
+
+```kotlin
+val printJobState = {j: Job ->  
+    println("${j.toString().replace("LazyStandaloneCoroutine","coroutine").split("@")[0]}; " +  
+            "isActive = ${j.isActive}; " +  
+            "isCompleted = ${j.isCompleted}; " +  
+            "isCancelled = ${j.isCancelled}") }  
+val lock = Any()  
+var doFinish = false  
+val job = CoroutineScope(Dispatchers.Default).launch(start = CoroutineStart.LAZY) {  
+    println("job started")  
+    launch {  
+	    println("child job started")  
+        try {
+            delay(300)  
+        } catch (c: CancellationException){  
+            println("child job ignoring cancelling")  
+        } finally {  
+            // if coroutine is cancelled,  
+            // any suspend fun invocation will throw another CancellationException here            while (!synchronized(lock){ doFinish }){} // finishing some important work  
+            println("child job finished")  
+        }  
+    }  
+    delay(200)  
+    println("job finished")  
+}  
+println("job created")  
+printJobState(job)  
+println("start job")  
+job.start()  
+printJobState(job)  
+delay(100)  
+println("cancel job")  
+job.cancel()  
+printJobState(job)  
+delay(100)  
+synchronized(lock){ doFinish = true }  
+delay(100)  
+printJobState(job)
+```
+```output
+job created
+coroutine{New}; isActive = false; isCompleted = false; isCancelled = false
+start job
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+job started
+child job started
+cancel job
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+child job ignoring cancelling
+child job finished
+coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
+```
+
+#### New -> Active -> Cancelling (by throwing) -> Cancelled
+
+```kotlin
+val printJobState = {j: Job ->  
+    println("${j.toString().replace("LazyStandaloneCoroutine","coroutine").split("@")[0]}; " +  
+            "isActive = ${j.isActive}; " +  
+            "isCompleted = ${j.isCompleted}; " +  
+            "isCancelled = ${j.isCancelled}") }  
+val lock = Any()  
+var doFinish = false  
+val job = CoroutineScope(  
+    Dispatchers.Default  
+            + CoroutineExceptionHandler { _, e -> println("Exception in coroutine") }  
+).launch(start = CoroutineStart.LAZY) {  
+    println("job started")  
+    launch {  
+	    println("child job started")  
+        try {
+            delay(300)  
+        } catch (c: CancellationException){  
+            println("child job ignoring cancelling")  
+        } finally {  
+            // if coroutine is cancelled,
+            // any suspend fun invocation throws another CancellationException here  
+            while (!synchronized(lock){ doFinish }){} // finishing some important work  
+            println("child job finished")  
+        }  
+    }  
+    delay(100)  
+    println("throwing Exception")  
+    throw Exception()  
+    println("job finished")  
+}  
+println("job created")  
+printJobState(job)  
+println("start job")  
+job.start()  
+printJobState(job)  
+delay(200)  
+printJobState(job)  
+delay(100)  
+synchronized(lock){ doFinish = true }  
+delay(100)  
+printJobState(job)
+```
+```output
+job created
+coroutine{New}; isActive = false; isCompleted = false; isCancelled = false
+start job
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+job started
+child job started
+throwing Exception
+child job ignoring cancelling
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+child job finished
+Exception in coroutine
+coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
+```
+
 ### Job Hierarchy
 
 Jobs can be arranged into parent-child hierarchies where cancellation of a parent leads to immediate cancellation of all its children recursively. Failure of a child with an exception other than `CancellationException` immediately cancels its parent and, consequently, all its other children.
@@ -676,6 +832,242 @@ A parent-child relation has the following effect:
 - Parent cannot complete until all its children are complete. Parent waits for all its children to complete in *completing* or *cancelling* state.
 - Uncaught exception in a child, by default, cancels parent. This applies even to children created with `async` and other future-like *coroutine builders*, even though their exceptions are caught and are encapsulated in their result.
 
+##### Cancelling child by cancel() wont affect parent and other children
+
+```kotlin
+fun printJobState(j: Job){  
+    println("${j.toString().replace("StandaloneCoroutine","coroutine").split("@")[0]}; " +  
+            "isActive = ${j.isActive}; " +  
+            "isCompleted = ${j.isCompleted}; " +  
+            "isCancelled = ${j.isCancelled}")  
+}  
+fun printParentJobState(j: Job, level: Int = 0){  
+    print("".padStart(level, ' '))  
+    printJobState(j)  
+    for(cj in j.children) printParentJobState(cj, level+1)  
+}  
+val lock = Any()  
+var doFinish = false  
+val jobs = HashMap<String, Job>()  
+jobs["parent"] = CoroutineScope(Dispatchers.Default  
+        + CoroutineExceptionHandler { _, e -> println("Exception in coroutine") }  
+).launch {  
+    println("parent job started")  
+    jobs["child1"] = launch {  
+        println("child1 job started")  
+        delay(400)  
+        println("child1 job finished")  
+    }  
+    jobs["child2"] = launch {  
+        println("child2 job started")  
+        try {  
+            delay(200)  
+        } catch (c: CancellationException) {  
+            println("child2 job has gotten CancellationException")  
+        } finally {  
+            while (!synchronized(lock){ doFinish }){} // finishing some important work  
+            println("child2 job finished")  
+        }  
+    }  
+    delay(600)  
+    println("parent job finished")  
+}  
+jobs["parent"]?.let (::printParentJobState)  
+delay(100)  
+println("cancel child2 job")  
+jobs["child2"]?.cancel()  
+delay(100)  
+jobs["parent"]?.let (::printParentJobState)  
+synchronized(lock){ doFinish = true } // finishing child2  
+delay(100) // both parent is finishing  
+jobs["parent"]?.let (::printParentJobState)  
+delay(200)  
+jobs["parent"]?.let (::printParentJobState)  
+delay(200)  
+jobs["parent"]?.let (::printParentJobState)
+```
+```output
+parent job started
+child1 job started
+child2 job started
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+ coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+ coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+cancel child2 job
+child2 job has gotten CancellationException
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+ coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+ coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+child2 job finished
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+ coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+child1 job finished
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+parent job finished
+coroutine{Completed}; isActive = false; isCompleted = true; isCancelled = false
+```
+
+##### Exception in one child cancels both parent and other children:
+
+```kotlin
+val printJobState = {j: Job ->  
+    println("${j.toString().replace("StandaloneCoroutine","coroutine").split("@")[0]}; " +  
+            "isActive = ${j.isActive}; " +  
+            "isCompleted = ${j.isCompleted}; " +  
+            "isCancelled = ${j.isCancelled}")  
+  
+}  
+val printParentJobState = {j: Job ->  
+    printJobState(j)  
+    for((i, cj) in j.children.withIndex()) {  
+        print("  child${i+1} ")  
+        printJobState(cj)  
+    }  
+}  
+val lock = Any()  
+var doFinish1 = false  
+var doFinish2 = false  
+val job = CoroutineScope(  
+    Dispatchers.Default  
+            + CoroutineExceptionHandler { _, e -> println("Exception in coroutine") }  
+).launch {  
+    println("parent job started")  
+    launch {  
+        println("child1 job started")  
+        try {  
+            delay(200)  
+        } catch (c: CancellationException){  
+            println("child1 job has gotten CancellationException")  
+        } finally {  
+            // if coroutine is cancelled,  
+            // any suspend fun invocation throws another CancellationException here            while (!synchronized(lock){ doFinish1 }){} // finishing some important work  
+            println("child1 job finished")  
+        }  
+    }  
+    launch {  
+        println("child2 job started")  
+        delay(100)  
+        println("child2 job throwing Exception")  
+        throw Exception()  
+        println("child2 job finished")  
+    }  
+    try {  
+        delay(400)  
+    } catch (c: CancellationException) {  
+        println("parent job has gotten CancellationException")  
+    } finally {  
+        // if coroutine is cancelled,  
+        // any suspend fun invocation throws another CancellationException here        while (!synchronized(lock){ doFinish2 }){} // finishing some important work  
+        println("parent job finished")  
+    }  
+}  
+printParentJobState(job)  
+delay(200) // child2 job throwed Exception  
+printParentJobState(job)  
+delay(100) // both parent and children are finishing  
+synchronized(lock){ doFinish1 = true } // finishing alive child  
+delay(100) // both parent is finishing  
+printParentJobState(job)  
+synchronized(lock){ doFinish2 = true } // finishing parent  
+delay(100)  
+printParentJobState(job)
+```
+```output
+parent job started
+child1 job started
+child2 job started
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+  child1 coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+  child2 coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+child2 job throwing Exception
+child1 job has gotten CancellationException
+parent job has gotten CancellationException
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+  child1 coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled= true
+child1 job finished
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+parent job finished
+Exception in coroutine
+coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
+```
+
+##### Exception propagation:
+
+```kotlin
+fun printJobState(j: Job){  
+    println("${j.toString().replace("StandaloneCoroutine","coroutine").split("@")[0]}; " +  
+            "isActive = ${j.isActive}; " +  
+            "isCompleted = ${j.isCompleted}; " +  
+            "isCancelled = ${j.isCancelled}")  
+}  
+fun printParentJobState(j: Job, level: Int = 0){  
+    print("".padStart(level, ' '))  
+    printJobState(j)  
+    for(cj in j.children) printParentJobState(cj, level+1)  
+}  
+val lock = Any()  
+var doFinish1 = false  
+var doFinish2 = false  
+val job = CoroutineScope(Dispatchers.Default  
+            + CoroutineExceptionHandler { _, e -> println("Exception in coroutine") }  
+).launch {  
+    println("parent job started")  
+    launch {  
+        println("child job started")  
+        launch {  
+            println("sub child job started")  
+            delay(100)  
+            println("sub child job throwing Exception")  
+            throw Exception()  
+            println("sub child job finished")  
+        }  
+        try {  
+            delay(200)  
+        } catch (c: CancellationException){  
+            println("child job has gotten CancellationException")  
+        } finally {  
+            while (!synchronized(lock){ doFinish1 }){} // finishing some important work  
+            println("child job finished")  
+        }  
+    }  
+    try {  
+        delay(400)  
+    } catch (c: CancellationException) {  
+        println("parent job has gotten CancellationException")  
+    } finally {  
+        while (!synchronized(lock){ doFinish2 }){} // finishing some important work  
+        println("parent job finished")  
+    }  
+}  
+printParentJobState(job)  
+delay(200) // child2 job throwed Exception  
+printParentJobState(job)  
+delay(100) // both parent and children are finishing  
+synchronized(lock){ doFinish1 = true } // finishing alive child  
+delay(100) // both parent is finishing  
+printParentJobState(job)  
+synchronized(lock){ doFinish2 = true } // finishing parent  
+delay(100)  
+printParentJobState(job)
+```
+```output
+parent job started
+child job started
+sub child job started
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+ coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+  coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+sub child job throwing Exception
+parent job has gotten CancellationException
+child job has gotten CancellationException
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+ coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+child job finished
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+parent job finished
+Exception in coroutine
+coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
+```
 
 ### Start and Join
 
@@ -762,6 +1154,7 @@ public fun CoroutineScope(context: CoroutineContext): CoroutineScope =
 public suspend fun <R> coroutineScope(block: suspend CoroutineScope.() -> R): R { ... }
 ```
 
+## Coroutine Builders
 
 [`CoroutineStart`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-start/) defines start options for coroutines builders. It is used in `start` parameter of `launch`, `async`, and other coroutine builder functions.
 
