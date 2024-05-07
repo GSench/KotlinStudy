@@ -102,6 +102,7 @@ When `suspendCoroutine` is called inside a coroutine (and it can _only_ be calle
 [`coroutineContext`](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/coroutine-context.html) is a top-level property that is available in all suspending functions to retrieve the `CoroutineContext` of the current coroutine.
 
 [currentCoroutineContext](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/current-coroutine-context.html) returns the current `CoroutineContext` retrieved by using `coroutineContext`. This function is an alias to avoid name clash with `CoroutineScope.coroutineContext` in a receiver position.
+
 ## CoroutineContext
 
 - [Kotlin Coroutines guide﻿](https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html)
