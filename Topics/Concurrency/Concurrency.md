@@ -1,10 +1,8 @@
-# Concurrency
+# Concurrency ✅
 
-- [ШМР - Потоки и асинхронность](https://www.youtube.com/watch?v=e_NOYbGwI-g)
-- [Oracle - Concurrency Tutorial](https://docs.oracle.com/javase/tutorial/essential/concurrency/index.html)
-- [Java - Chapter 17. Threads and Locks](https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html)
+- [Яндекс: ШМР - Потоки и асинхронность](https://www.youtube.com/watch?v=e_NOYbGwI-g)
+- [Oracle - Java Concurrency Tutorial](https://docs.oracle.com/javase/tutorial/essential/concurrency/index.html)
 - [Jenkov - Java Concurrency and Multithreading Tutorial](https://jenkov.com/tutorials/java-concurrency/index.html)
-- [Kotlin - Asynchronous programming techniques](https://kotlinlang.org/docs/async-programming.html)
 
 **<u>Concurrency</u>** is the ability of different parts or units of a program, algorithm, or problem to be executed out-of-order or in partial order, without affecting the outcome.
 

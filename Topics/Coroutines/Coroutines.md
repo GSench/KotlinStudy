@@ -3,6 +3,8 @@
 - [Kotlin Coroutines guide﻿](https://kotlinlang.org/docs/coroutines-guide.html)
 - [Coroutines design document (KEEP)](https://github.com/Kotlin/KEEP/blob/master/proposals/coroutines.md)
 
+## Intro ✅
+
 A **<u>coroutine</u>** is an instance of a suspendable computation. It is conceptually similar to a thread, in the sense that it takes a block of code to run that works concurrently with the rest of the code. However, a coroutine is not bound to any particular thread. It may suspend its execution in one thread and resume in another one.
 
 In Java each thread is associated with an instance of the class `Thread`.
@@ -103,7 +105,7 @@ When `suspendCoroutine` is called inside a coroutine (and it can _only_ be calle
 
 [currentCoroutineContext](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/current-coroutine-context.html) returns the current `CoroutineContext` retrieved by using `coroutineContext`. This function is an alias to avoid name clash with `CoroutineScope.coroutineContext` in a receiver position.
 
-## CoroutineContext
+## CoroutineContext ✅
 
 - [Kotlin Coroutines guide﻿](https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html)
 - [API docs](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/)
@@ -314,14 +316,14 @@ inside coroutine: CoroutineName(Some name)
 
 ## Job
 
-- https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/
-- https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/Job.kt
+- [Kotlin API docs: Job](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/)
+- [Job source code](https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/Job.kt)
 
 A background job. `Job` is an abstraction on *coroutine* lifecycle.
 
 All functions on `Job` interface and on all interfaces derived from it are **thread-safe** and can be safely invoked from concurrent coroutines without external synchronization.
 
-A `Job` can be created using the standard function `Job(parent:Job?)`, but usually a `Job` is created with *coroutine builders*.
+A `Job` can be created using the standard function [`Job(parent:Job?)`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job.html), but usually a `Job` is created with *coroutine builders*.
 
 ```kotlin
 // using fun Job():
@@ -352,7 +354,7 @@ job = StandaloneCoroutine{Active}@2c9b3971
 outside coroutine: CoroutineName = null
 ```
 
-### Job States
+### Job States ✅
 
 A job has the following states:
 
@@ -538,7 +540,7 @@ Exception in coroutine
 coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
 ```
 
-### Job Hierarchy
+### Job Hierarchy ✅
 
 Jobs can be arranged into parent-child hierarchies where cancellation of a parent leads to immediate cancellation of all its children recursively. Failure of a child with an exception other than `CancellationException` immediately cancels its parent and, consequently, all its other children.
 
@@ -547,7 +549,7 @@ Jobs can be arranged into parent-child hierarchies where cancellation of a paren
 
 #### Building `Job` relationships with `CoroutineContext`
 
-A `Job C` becomes a child of `Job P` when it is constructed with this `Job P` in its `CoroutineContext`.
+A `Job C` becomes a child of `Job P` when it is constructed with this `Job P` in its `CoroutineContext` ([Kotlin API docs: Job.children](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/children.html)).
 
 ```kotlin
 val parentJob = launch {  
@@ -733,7 +735,7 @@ The same as building `Job` relationships with `CoroutineContext`, but now `val n
 
 #### Building `Job` relationships with `fun Job()`
 
-A `Job` can be created as a child of another `Job` using an explicit `parent` parameter of `fun Job()`.
+A `Job` can be created as a child of another `Job` using an explicit `parent` parameter of [`fun Job()`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job.html).
 
 Such `Job A` is not associated with any coroutine. A coroutine (and associated `Job B`) can be created with previouse approach using a *coroutine builder*. We can provide `Job A` as context `parameter`, so that `launch`ed `Job B` becomes the child `Job` of `Job A`.  Such `Job A` enables to manage `Job B` lifecycle over paren-child relationships.
 
@@ -1070,7 +1072,7 @@ Exception in coroutine
 coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
 ```
 
-### Start and Join
+### Start and Join ✅
 
 #### [`start(): Boolean`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/start.html)
 

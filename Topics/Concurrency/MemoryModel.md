@@ -1,6 +1,6 @@
 # Memory Model
 
-- https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.4
+- [Oracle - Java Language Specification: Chapter 17. Threads and Locks: 17.4. Memory Model](https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.4)
 - https://jenkov.com/tutorials/java-concurrency/java-memory-model.html
 - https://jenkov.com/tutorials/java-concurrency/java-happens-before-guarantee.html
 
@@ -8,11 +8,11 @@ A **<u>memory model</u>** describes whether the execution trace is a legal execu
 
 The memory model describes **possible behaviors** of a program. An implementation is free to produce any code it likes, as long as *all resulting executions of a program produce a result that can be predicted by the memory model*. This provides a great deal of freedom for the implementor to perform a myriad of **code transformations**, including the **reordering of actions** and **removal of unnecessary synchronization**.
 
-## Shared Memory
+## Shared Memory ✅
 
 Memory that can be shared between threads is called _shared memory_ or _heap memory_. Local variables, formal method parameters, and exception handler parameters are never shared between threads and are unaffected by the memory model.
 
-## Actions
+## Actions ✅
 
 An **<u>inter-thread action</u>** is an action performed by one thread that can be detected or directly influenced by another thread:
 - *Read* (non-volatile). Reading a variable.
@@ -27,7 +27,7 @@ An **<u>inter-thread action</u>** is an action performed by one thread that can 
 - *External Actions* - actions that may be observable outside of an execution, and has a result based on an environment external to the execution.
 - *Thread divergence actions*: performed by a thread that is in an infinite loop in which no memory, synchronization, or external actions are performed. They allow to model how a thread may cause all other threads to stall and fail to make progress.
 
-## Intra-thread Semantics
+## Intra-thread Semantics ✅
 
 https://stackoverflow.com/questions/25711048/understanding-intra-thread-semantics
 
@@ -196,7 +196,7 @@ And the result of this program is `a=-1`, but not `a=1`, like it would be if `th
 
 *Intra-thread semantics* only guarrants **the execution order** of both threads **within these threads**. `write c` action in `threadA` is executed **before** `read c` action in `threadA`. `threadB` interfered into program logic and executed `write c` action. The order of `write c` actions is undefined inter-thread, because there are no memory model constraints. Thus `threadA` actions became inconsistent with the results of this thread. But *intra-thread semantics* **was not violated**! It is impossible to violate *intra-thread semantics*, because these rules are something that compiler and JVM implementation must obey.
 
-## Program Order
+## Program Order ✅
 
 The **<u>program order</u>** is a total order in which *inter-thread actions* would be performed according to the *intra-thread semantics*.
 

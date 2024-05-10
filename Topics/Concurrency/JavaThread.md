@@ -1,4 +1,12 @@
-# [Java Thread](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html)
+# Java Thread
+
+- [Oracle - Java Concurrency Tutorial](https://docs.oracle.com/javase/tutorial/essential/concurrency/index.html)
+- [Java API docs: Thread](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html)
+- [Jenkov - Java Concurrency and Multithreading Tutorial](https://jenkov.com/tutorials/java-concurrency/index.html)
+- [Kotlin - Asynchronous programming techniques](https://kotlinlang.org/docs/async-programming.html)
+- [Яндекс: ШМР - Потоки и асинхронность](https://www.youtube.com/watch?v=e_NOYbGwI-g)
+
+## Intro ✅
 
 Each thread is associated with an instance of the class [`Thread`](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html).
 
@@ -30,7 +38,7 @@ fun main(){
 }
 ```
 
-## Thread properties
+## [Thread properties](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html) ✅
 
 - `static Thread.currentThread(): Thread` - Returns a reference to the currently executing thread object.
 - `.name: String` - the thread's name.
@@ -39,10 +47,9 @@ fun main(){
 - `.state: Thread.State` - the thread's state.
 - `.isAlive(): Boolean` - Tests if this thread is alive.
 
-## Lifecycle
+## Lifecycle ✅
 
-- https://www.baeldung.com/java-thread-lifecycle
-- https://javarush.com/quests/lectures/questmultithreading.level05.lecture03
+- [Baeldung Guide: Java Thread Lifecycle](https://www.baeldung.com/java-thread-lifecycle)
 
 ![Lifecycle](img/ThreadLifecycle.png)
 
@@ -102,12 +109,12 @@ println(thread.state) // TERMINATED
 ```
 
 
-## Thread control methods
+## Thread control methods ✅
 
 ### Sleep
 
-- https://docs.oracle.com/javase/tutorial/essential/concurrency/sleep.html
-- https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html
+- [Oracle - Java Concurrency Tutorial: Sleep](https://docs.oracle.com/javase/tutorial/essential/concurrency/sleep.html)
+- [Java API docs: Thread](https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html)
 
 `Thread.sleep()` causes the current thread to suspend execution for a specified period.
 
@@ -132,8 +139,8 @@ println("5. Main thread finished") // 5
 
 ### Join
 
-- https://www.baeldung.com/java-thread-join
-- https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.html#join()
+- [Baeldung Guide: Java Thread Sleep](https://www.baeldung.com/java-thread-join)
+- [Java API docs: Thread.join()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.html#join())
 
 Waits for this thread to terminate.
 Throws: `[InterruptedException]` - if any thread has interrupted the current thread. The *interrupted status* of the current thread is cleared when this exception is thrown.
@@ -170,11 +177,11 @@ println("7. Main thread finished") // 7
 
 ### Wait & Notify
 
-- https://www.baeldung.com/java-wait-notify
-- https://www.baeldung.com/cs/monitor
-- https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#notify()
-- https://javarush.com/groups/posts/4145-kofe-breyk-237-poljhzovateljhskaja-sinkhronizacija-v-java-s-ispoljhzovaniem-vstroennihkh-blokir
-- https://jenkov.com/tutorials/java-concurrency/thread-signaling.html
+- [Baeldung Guide: Java Wait & Notify](https://www.baeldung.com/java-wait-notify)
+- [Baeldung Guide: Java Monitor](https://www.baeldung.com/cs/monitor)
+- [Java API docs: Object.notify()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#notify())
+- [JavaRush Guide: Java Custom synchronization wait(), notify()](https://javarush.com/groups/posts/4145-kofe-breyk-237-poljhzovateljhskaja-sinkhronizacija-v-java-s-ispoljhzovaniem-vstroennihkh-blokir)
+- [Jenkov Tutorials: Java Thread Signaling](https://jenkov.com/tutorials/java-concurrency/thread-signaling.html)
 
 - `wait()` - Causes the current thread to wait until it is awakened, typically by being _notified_ or _interrupted_.
 - `wait(timeout)` - The same as `wait()`, but waiting until a certain amount of real time has elapsed.
@@ -182,6 +189,8 @@ println("7. Main thread finished") // 7
 - `notifyAll()` - Wakes up all threads that are waiting on this object's monitor.
 
 These methods should only be called by a thread that is the owner of this object's *monitor*. **`wait()` orders the calling thread to release the monitor and go to sleep until some other thread enters this monitor and calls `notify()`**.  Also, `notify()` wakes up **the first thread** that called `wait()` on the specific object.
+
+![thread-signaling-1](thread-signaling-1.png)
 
 https://ru.stackoverflow.com/questions/853006/kotlin-wait-and-notify
 > In Kotlin, the `Any` class does not have `wait()`, `notify()`, `notifyAll()`. This is like a hint of what needs to be done differently.
@@ -386,8 +395,8 @@ class BlockingQueue<T>(val capacity: Int) {
 
 ### Interruption
 
-- https://docs.oracle.com/javase/tutorial/essential/concurrency/interrupt.html
-- https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html#interrupt--
+- [Oracle - Java Concurrency Tutorial: Interrupt](https://docs.oracle.com/javase/tutorial/essential/concurrency/interrupt.html)
+- [Java API docs: Thread.interrupt()](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html#interrupt--)
 
 `interrupt()` - Interrupts this thread.
 
@@ -547,7 +556,6 @@ trying to interrupt
 interrupt executed
 Thread interrupted
 ```
-
 
 ## Syncronization
 
