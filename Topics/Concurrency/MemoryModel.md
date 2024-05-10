@@ -218,7 +218,6 @@ val threadA = thread {
 }
 val threadB = thread {
 	c = -1
-	
 	b = c
 }
 ```
