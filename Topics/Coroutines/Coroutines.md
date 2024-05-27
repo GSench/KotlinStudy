@@ -24,7 +24,7 @@ None of this classes are instantiated explicitly (like `Thread t = new Thread(..
 In practice we use:
 
 - `CoroutineContext` to store, combine and access *coroutine* properties (incl. `Job`, `CoroutineDispatcher` and `CoroutineExceptionHandler`)
-- `CoroutineScope` (that incapsulse `CoroutineContext`) to build coroutines and manage them by `CoroutineContext` elements.
+- `CoroutineScope` (that incapsulates `CoroutineContext`) to build coroutines and manage them by `CoroutineContext` elements.
 
 This is only an illustration of using coroutines:
 
@@ -149,7 +149,7 @@ public interface Job : CoroutineContext.Element {
 
 #### CoroutineDispatcher
 
-`CoroutineDispatcher` allows to manage *coroutine* threads policy
+`CoroutineDispatcher` allows to manage coroutine threads policy.
 
 ```kotlin
 public abstract class CoroutineDispatcher :
@@ -161,7 +161,7 @@ public abstract class CoroutineDispatcher :
 
 #### CoroutineExceptionHandler
 
-`CoroutineExceptionHandler` allows to handle *coroutine* exceptions.
+`CoroutineExceptionHandler` allows to handle coroutine exceptions.
 
 ```kotlin
 public interface CoroutineExceptionHandler : CoroutineContext.Element {
@@ -200,7 +200,7 @@ suspend fun doSomething() {
 Thus, each element [`CoroutineСontext.Element`](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/-element/) of the `CoroutineСontext` **IS** `CoroutineСontext` itself (as it implements ` : CoroutineContext.Element : CoroutineContext`). An element of the coroutine context is a singleton context by itself.
 
 ```kotlin
-val job: CoroutineContext = Job() // this is not constructor, as Job is an interface
+val job: CoroutineContext = Job() // this is not constructor, as Job is an interface. Job() is the function
 ```
 
 `companion object Key` allows to `get` elements of `CoroutineСontext` by class (as `companion object` resolved statically):
@@ -302,16 +302,22 @@ val job = CoroutineScope(context).launch {
 println("nameContext = $nameContext")  
 println("context = $context")  
 println("job = $job")  
-println(job[CoroutineName]) // null  
-job.join()
+println("job[CoroutineName] = ${job[CoroutineName]}") // null  
+job.join()  
+// BUT  
+val coroutineContext = (job as CoroutineScope).coroutineContext  
+println("context == coroutineContext is ${context == coroutineContext}")  
+println("outside coroutine: ${coroutineContext[CoroutineName]}")
 ```
 ```output
 nameContext = CoroutineName(Some name)
 context = [CoroutineName(Some name), Dispatchers.Default]
-job = StandaloneCoroutine{Active}@18e8568
-null
-coroutineContext = [CoroutineName(Some name), StandaloneCoroutine{Active}@18e8568, Dispatchers.Default]
+job = StandaloneCoroutine{Active}@1ef7fe8e
+job[CoroutineName] = null
+coroutineContext = [CoroutineName(Some name), StandaloneCoroutine{Active}@1ef7fe8e, Dispatchers.Default]
 inside coroutine: CoroutineName(Some name)
+context == coroutineContext is false
+outside coroutine: CoroutineName(Some name)
 ```
 
 ## Job
@@ -334,17 +340,23 @@ val job = launch {...}
 
 **`launch` always creates a new couroutine and a `Job` associated with it.** There is no way to provide an existing `Job` instance for `launch`.
 
-`launch` returns the `Job` only. There is no other elements of `CoroutineContext` of `CoroutineScope` of `launch` presented in this `Job`:
+`launch` returns the `Job` only. There is no other elements of `CoroutineContext` of `CoroutineScope` of `launch` presented in this `Job`. But this `Job` is also the `StandaloneCoroutine`, which `: CoroutineScope`. We can get `coroutineContext` of launched coroutine from it:
 
 ```kotlin
-val job = CoroutineScope(Dispatchers.Default + CoroutineName("Some name")).launch {  
+val job = CoroutineScope(  
+    Dispatchers.Default  
+    + CoroutineName("Some name")
+).launch {  
     println("coroutineContext = $coroutineContext")  
     println("inside coroutine: CoroutineName = ${coroutineContext[CoroutineName]}")  
     delay(100)  
 }  
 delay(100)  
 println("job = $job")  
-println("outside coroutine: CoroutineName = ${job[CoroutineName]}") // null  
+println("outside coroutine: CoroutineName = ${job[CoroutineName]}") // null
+// BUT  
+val coroutineContext = (job as CoroutineScope).coroutineContext  
+println("outside coroutine: CoroutineName = ${coroutineContext[CoroutineName]}")
 job.join()
 ```
 ```output
@@ -352,6 +364,7 @@ coroutineContext = [CoroutineName(Some name), StandaloneCoroutine{Active}@2c9b39
 inside coroutine: CoroutineName = CoroutineName(Some name)
 job = StandaloneCoroutine{Active}@2c9b3971
 outside coroutine: CoroutineName = null
+outside coroutine: CoroutineName = CoroutineName(Some name)
 ```
 
 ### Job States ✅
@@ -834,6 +847,97 @@ A parent-child relation has the following effect:
 - Cancellation of parent with `cancel()` or its exceptional completion (failure) immediately cancels all its children.
 - Parent cannot complete until all its children are complete. Parent waits for all its children to complete in *completing* or *cancelling* state.
 - Uncaught exception in a child, by default, cancels parent. This applies even to children created with `async` and other future-like *coroutine builders*, even though their exceptions are caught and are encapsulated in their result.
+
+##### Cancelling parent cancels its children
+
+```kotlin
+fun printJobState(j: Job){  
+    println("${j.toString().replace("StandaloneCoroutine","coroutine").split("@")[0]}; " +  
+            "isActive = ${j.isActive}; " +  
+            "isCompleted = ${j.isCompleted}; " +  
+            "isCancelled = ${j.isCancelled}")  
+}  
+fun printParentJobState(j: Job, level: Int = 0){  
+    print("".padStart(level, ' '))  
+    printJobState(j)  
+    for(cj in j.children) printParentJobState(cj, level+1)  
+}  
+val lock = Any()  
+var doFinish = false  
+var doFinish1 = false  
+var doFinish2 = false  
+val jobs = HashMap<String, Job>()  
+jobs["parent"] = CoroutineScope(Dispatchers.Default).launch {  
+    println("parent job started")  
+    jobs["child1"] = launch {  
+        println("child1 job started")  
+        try {  
+            delay(1000)  
+        } catch (c: CancellationException) {  
+            println("child1 job has gotten CancellationException")  
+        } finally {  
+            while (!synchronized(lock){ doFinish1 }){} // finishing some important work  
+            println("child1 job finished")  
+        }  
+    }  
+    jobs["child2"] = launch {  
+        println("child2 job started")  
+        try {  
+            delay(1000)  
+        } catch (c: CancellationException) {  
+            println("child2 job has gotten CancellationException")  
+        } finally {  
+            while (!synchronized(lock){ doFinish2 }){} // finishing some important work  
+            println("child2 job finished")  
+        }  
+    }  
+    try {  
+        delay(1000)  
+    } catch (c: CancellationException) {  
+        println("parent job has gotten CancellationException")  
+    } finally {  
+        while (!synchronized(lock){ doFinish }){} // finishing some important work  
+        println("parent job finished")  
+    }  
+}  
+jobs["parent"]?.let (::printParentJobState)  
+delay(100)  
+println("cancel parent")  
+jobs["parent"]?.cancel()  
+delay(100)  
+jobs["parent"]?.let (::printParentJobState)  
+synchronized(lock){ doFinish1 = true } // finishing child1  
+delay(100)  
+jobs["parent"]?.let (::printParentJobState)  
+synchronized(lock){ doFinish2 = true } // finishing child2  
+delay(100)  
+jobs["parent"]?.let (::printParentJobState)  
+synchronized(lock){ doFinish = true } // finishing parent  
+delay(100)  
+jobs["parent"]?.let (::printParentJobState)
+```
+```output
+parent job started
+child1 job started
+child2 job started
+coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+ coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+ coroutine{Active}; isActive = true; isCompleted = false; isCancelled = false
+cancel parent
+child1 job has gotten CancellationException
+parent job has gotten CancellationException
+child2 job has gotten CancellationException
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+ coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+ coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+child1 job finished
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+ coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+child2 job finished
+coroutine{Cancelling}; isActive = false; isCompleted = false; isCancelled = true
+parent job finished
+coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
+```
 
 ##### Cancelling child by cancel() wont affect parent and other children
 

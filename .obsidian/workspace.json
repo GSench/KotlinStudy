@@ -37,14 +37,13 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Concurrency/MemoryModel.md",
+                "file": "Topics/04_11_Functions/Lambdas.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -110,7 +109,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/Concurrency/MemoryModel.md",
+                "file": "Topics/Coroutines/Coroutines.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +126,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/Concurrency/MemoryModel.md",
+                "file": "Topics/Coroutines/Coroutines.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -150,7 +149,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/Concurrency/MemoryModel.md"
+                "file": "Topics/Coroutines/Coroutines.md"
               }
             }
           }
@@ -171,12 +170,16 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "2d6d52bdf01c4133",
+  "active": "cd0cbda52b2596b2",
   "lastOpenFiles": [
-    "Topics/Coroutines/Flows.md",
-    "Topics/Concurrency/MemoryModel.md",
     "Topics/Concurrency/JavaThread.md",
     "Topics/Coroutines/Coroutines.md",
+    "Topics/04_11_Functions/Lambdas.md",
+    "Topics/04_11_Functions/Functions.md",
+    "Topics/09_Inheritance/Inheritance﻿.md",
+    "Topics/05_Classes/Classes.md",
+    "Topics/Concurrency/MemoryModel.md",
+    "Topics/Coroutines/Flows.md",
     "Topics/Concurrency/Concurrency.md",
     "Topics/Serialization/Serialization.md",
     "Topics/Concurrency/img/thread-signaling-1.png",
@@ -197,11 +200,8 @@
     "Topics/Concurrency/img/concurrency-vs-parallelism-2.png",
     "Topics/Concurrency/img/concurrency-vs-parallelism-2.png.crdownload",
     "Books/Library.md",
-    "Topics/05_Classes/Classes.md",
     "Topics/Concurrency/img",
     "Topics/Concurrency",
-    "Topics/04_11_Functions/Functions.md",
-    "Topics/04_11_Functions/Lambdas.md",
     "Topics/04_11_Functions/Extensions.md",
     "Topics/03_Basics/Basics.md",
     "Topics/02_CodingConventions/Coding conventions﻿.md",
