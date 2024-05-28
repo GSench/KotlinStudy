@@ -553,7 +553,7 @@ Exception in coroutine
 coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
 ```
 
-### Job Hierarchy ✅
+### Structured Concurrency ✅
 
 Jobs can be arranged into parent-child hierarchies where cancellation of a parent leads to immediate cancellation of all its children recursively. Failure of a child with an exception other than `CancellationException` immediately cancels its parent and, consequently, all its other children.
 
@@ -1190,8 +1190,265 @@ This suspending function is cancellable and **always** checks for a cancellation
 
 ### Cancel
 
+- [Kotlin Guide: Cancellation and timeouts﻿](https://kotlinlang.org/docs/cancellation-and-timeouts.html#asynchronous-timeout-and-resources)
+- [Kotlin API docs: Cancel](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/cancel.html)
 
-#### [CancellationException](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-cancellation-exception/index.html)
+- `.cancel(cause: CancellationException? = null)` Cancels this job with an optional cancellation `cause` [`CancellationException(message:String?):IllegalStateException`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-cancellation-exception/index.html).
+- `.cancel(message: String, cause: Throwable? = null)` Cancels this job with a specified diagnostic error `message`. A `cause` can be specified to provide additional details on a cancellation reason for debugging purposes.
+- [`.cancelAndJoin()`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/cancel-and-join.html) Cancels the job and suspends the invoking coroutine until the cancelled job is complete.
+- [`.cancelChildren(cause: CancellationException? = null)`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/cancel-children.html) Cancels all children jobs of this coroutine using `.cancel(cause)` for all of them with an optional cancellation cause. Unlike `.cancel()` on this job as a whole, the state of this job itself is not affected.
+
+After `cancel()`, the `Job` can not be used for creating a new coroutine (as a parent `Job` for a new one).
+
+Normal cancellation of a job is distinguished from its failure by the type of this exception that caused its cancellation. A coroutine that threw `CancellationException` is considered to be _cancelled normally_.
+
+**Cancellation is cooperative!** After cancelling a Job, nothing is happend with the coroutine execution.
+
+```kotlin
+val job = CoroutineScope(Dispatchers.Default).launch {  
+    println("job started")  
+    for(i in 1..2000) println(i)  
+    println("job finished")  
+}  
+delay(1)  
+println("cancelling job")  
+job.cancel()  
+println("job cancelled")  
+job.join()
+```
+```output
+job started
+1
+...
+1153
+cancelling job
+1154
+...
+1517
+job cancelled
+1518
+...
+2000
+job finished
+```
+
+We need to implement cancellation the following ways: 
+
+#### Checking `isCanceled`/`isActive` status during coroutine execution. ✅
+
+If we expecting cancelling:
+
+```kotlin
+val job = CoroutineScope(Dispatchers.Default).launch {  
+    println("job started")  
+    for(i in 1..2000) {  
+        println(i)  
+        if(!isActive) return@launch  
+    }  
+    println("job finished")  
+}  
+delay(1)  
+println("cancelling job")  
+job.cancel()  
+println("job cancelled")  
+job.join()
+```
+```output
+job started
+1
+...
+232
+cancelling job
+233
+...
+685
+job cancelled
+```
+
+#### Throwing `CancellationException` with `ensureActive()` ✅
+
+If the job was cancelled, thrown exception contains the original cancellation cause.
+
+```kotlin
+val job = CoroutineScope(Dispatchers.Default).launch {  
+    try {  
+        println("job started")  
+        for(i in 1..2000) {  
+            println(i)  
+            ensureActive()  
+        }  
+        println("job finished")  
+    } catch (c: CancellationException) {  
+        println("CancellationException")  
+    }  
+}  
+delay(1)  
+println("cancelling job")  
+job.cancel()  
+println("job cancelled")  
+job.join()
+```
+```output
+job started
+1
+...
+419
+cancelling job
+420
+...
+718
+job cancelled
+CancellationException
+...
+```
+
+#### Throwing `CancellationException` with Kotlin's `suspend fun`s ✅
+
+All `suspend fun`s of `kotlinx.coroutines` (such as `delay()`, `yield()`, `join()`) throw `CancellationException` if current `Job` is cancelled.
+
+```kotlin
+val job = CoroutineScope(Dispatchers.Default).launch {  
+    try {  
+        println("job started")  
+        delay(200)  
+        println("job finished")  
+    } catch (c: CancellationException) {  
+        println("CancellationException")  
+    }  
+}  
+delay(100)  
+println("cancelling job")  
+job.cancel()  
+println("job cancelled")  
+job.join()
+```
+```output
+job started
+cancelling job
+job cancelled
+CancellationException
+```
+
+If a `Job` is in `Cancelling` state (is `.cancel()`ed), any further call to `delay()`, `yield()`, `join()` will throw the same `CancellationException` either!
+
+```kotlin
+val job = CoroutineScope(Dispatchers.Default).launch {
+    repeat(5) { i ->
+        try {
+            // print a message twice a second
+            println("job: I'm sleeping $i ...")
+            delay(500)
+        } catch (e: Exception) {
+            // log the exception
+            println("CancellationException")
+        }
+    }
+}
+delay(1300L) // delay a bit
+println("main: I'm tired of waiting!")
+job.cancelAndJoin() // cancels the job and waits for its completion
+println("main: Now I can quit.")
+```
+```output
+job: I'm sleeping 0 ...
+job: I'm sleeping 1 ...
+job: I'm sleeping 2 ...
+main: I'm tired of waiting!
+CancellationException
+job: I'm sleeping 3 ...
+CancellationException
+job: I'm sleeping 4 ...
+CancellationException
+main: Now I can quit.
+```
+
+```kotlin
+val job = CoroutineScope(Dispatchers.Default).launch {  
+    try {  
+        println("job started")  
+        delay(200)  
+    } catch (c: CancellationException) {  
+        println("CancellationException: ${c.message}")  
+    } finally {  
+        println("finally block started")  
+        // finishing some important work  
+        try {  
+            delay(100)  
+            println("job finished")  
+        } catch (cf: CancellationException) {  
+            println("CancellationException in finally: ${cf.message}")  
+        }  
+    }  
+}  
+delay(100)  
+println("cancelling job")  
+job.cancel(CancellationException("Cancel my job"))  
+println("job cancelled")  
+job.join()  
+println("main finished")
+```
+```output
+job started
+cancelling job
+job cancelled
+CancellationException: Cancel my job
+finally block started
+CancellationException in finally: Cancel my job
+main finished
+```
+
+#### [NonCancellable Job](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-non-cancellable/) ✅
+
+A non-cancelable job that is always active. It is designed for [withContext](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/with-context.html) function to prevent cancellation of code blocks that need to be executed without cancellation.
+
+Use it like this:
+
+```kotlin
+withContext(NonCancellable) {
+    // this code will not be cancelled
+}
+```
+
+**WARNING**: This object is not designed to be used with [launch](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/launch.html), [async](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/async.html), and other coroutine builders. if you write `launch(NonCancellable) { ... }` then not only the newly launched job will not be cancelled when the parent is cancelled, the whole parent-child relation between parent and child is severed. The parent will not wait for the child's completion, nor will be cancelled when the child crashed.
+
+```kotlin
+val job = CoroutineScope(Dispatchers.Default).launch {  
+    try {  
+        println("job started")  
+        delay(200)  
+    } catch (c: CancellationException) {  
+        println("CancellationException: ${c.message}")  
+    } finally {  
+        println("finally block started")  
+        // finishing some important work  
+        withContext(NonCancellable) {  
+            println("launching NonCancellable Job")  
+            delay(100)  
+            println("job finished")  
+        }  
+    }  
+}  
+delay(100)  
+println("cancelling job")  
+job.cancel(CancellationException("Cancel my job"))  
+println("job cancelled")  
+job.join()  
+println("main finished")
+```
+```output
+job started
+cancelling job
+job cancelled
+CancellationException: Cancel my job
+finally block started
+launching NonCancellable Job
+job finished
+main finished
+```
+
+#### Timeout Cancelling
+
+https://kotlinlang.org/docs/cancellation-and-timeouts.html#timeout
 
 ### [**CompletableJob**](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-completable-job/index.html)
 
