@@ -1188,7 +1188,7 @@ Suspends the coroutine until this `Job` is complete. This invocation resumes nor
 
 This suspending function is cancellable and **always** checks for a cancellation of the invoking coroutine's `Job`. If the `Job` of the invoking coroutine is *cancelled* or *completed* when this suspending function is invoked or while it is suspended, this function throws `CancellationException`. In particular, it means that a parent coroutine invoking `join` on a child coroutine throws `CancellationException` if the child had failed, since a failure of a child coroutine cancels parent by default.
 
-### Cancel
+### Cancel ✅
 
 - [Kotlin Guide: Cancellation and timeouts﻿](https://kotlinlang.org/docs/cancellation-and-timeouts.html#asynchronous-timeout-and-resources)
 - [Kotlin API docs: Cancel](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/cancel.html)
@@ -1234,7 +1234,7 @@ job finished
 
 We need to implement cancellation in the following ways:
 
-#### Checking `isCanceled`/`isActive` status during coroutine execution. ✅
+#### Checking `isCanceled`/`isActive` status during coroutine execution.
 
 If we expecting cancelling:
 
@@ -1291,7 +1291,7 @@ main: I'm tired of waiting!
 main: Now I can quit.
 ```
 
-#### Throwing `CancellationException` with `ensureActive()` ✅
+#### Throwing `CancellationException` with `ensureActive()`
 
 If the job was cancelled, thrown exception contains the original cancellation cause.
 
@@ -1328,7 +1328,7 @@ CancellationException
 ...
 ```
 
-#### Throwing `CancellationException` with Kotlin's `suspend fun`s ✅
+#### Throwing `CancellationException` with Kotlin's `suspend fun`s
 
 All `suspend fun`s of `kotlinx.coroutines` (such as `delay()`, `yield()`, `join()`) throw `CancellationException` if current `Job` is cancelled.
 
@@ -1423,7 +1423,7 @@ CancellationException in finally: Cancel my job
 main finished
 ```
 
-#### [NonCancellable Job](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-non-cancellable/) ✅
+#### [NonCancellable Job](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-non-cancellable/)
 
 A non-cancelable job that is always active. It is designed for [withContext](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/with-context.html) function to prevent cancellation of code blocks that need to be executed without cancellation.
 
@@ -1474,7 +1474,178 @@ main finished
 
 #### Timeout Cancelling
 
-https://kotlinlang.org/docs/cancellation-and-timeouts.html#timeout
+- [Kotlin API docs: withTimeout](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/with-timeout.html)
+- [Kotlin API docs: withTimeoutOrNull](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/with-timeout-or-null.html)
+- [Kotlin Coroutines Guide: Cancellation and timeouts: Timeout](https://kotlinlang.org/docs/cancellation-and-timeouts.html#timeout)
+
+```kotlin
+suspend fun <T> withTimeout(timeMillis: Long, block: suspend CoroutineScope.() -> T): T
+suspend fun <T> withTimeoutOrNull(timeMillis: Long, block: suspend CoroutineScope.() -> T): T?
+```
+
+Runs a given suspending `block` of code inside a coroutine with a specified `timeout` and throws a [`TimeoutCancellationException: CancellationException`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-timeout-cancellation-exception/index.html) (`withTimeoutOrNull` returns `null`) if this timeout was exceeded. If the given `timeMillis` is non-positive, `TimeoutCancellationException` is thrown (with `withTimeoutOrNull` `null` is returned) immediately.
+
+The code that is executing inside the `block` is cancelled on timeout and the active or next invocation of the cancellable suspending function inside the block throws the same `TimeoutCancellationException`.
+
+How the time is tracked exactly is an implementation detail of the context's `CoroutineDispatcher`.
+
+```kotlin
+fun Job.state() = "$this isActive = $isActive; isCompleted = $isCompleted; isCancelled = $isCancelled"  
+CoroutineScope(Dispatchers.Default).launch {  
+    println("coroutine start")  
+    println("current job: ${coroutineContext.job.state()}")  
+    val result: String = try {  
+        withTimeout(1300) {  
+            println("withTimeout start")  
+            println("current job: ${coroutineContext.job.state()}")  
+            try {  
+                repeat(1000) { i ->  
+                    println("I'm sleeping $i ...")  
+                    delay(500)  
+                }  
+            } catch (e: TimeoutCancellationException){  
+                println("TimeoutCancellationException in withTimeout")  
+                println("current job: ${coroutineContext.job.state()}")  
+            }  
+            println("withTimeout finish")  
+            return@withTimeout "RESULT"  
+        }  
+    } catch (e: TimeoutCancellationException){  
+        println("TimeoutCancellationException in launch")  
+        println("current job: ${coroutineContext.job.state()}")  
+        "error"  
+    }  
+    println("result = $result")  
+    println("withTimeout finished")  
+    delay(100) // current Job is not cancelled! We can continue it.  
+    println("coroutine finish")  
+}.join()
+```
+```output
+coroutine start
+current job: StandaloneCoroutine{Active}@51cc9d5d isActive = true; isCompleted = false; isCancelled = false
+withTimeout start
+current job: TimeoutCoroutine(timeMillis=1300){Active}@4a87d501 isActive = true; isCompleted = false; isCancelled = false
+I'm sleeping 0 ...
+I'm sleeping 1 ...
+I'm sleeping 2 ...
+TimeoutCancellationException in withTimeout
+current job: TimeoutCoroutine(timeMillis=1300){Cancelling}@4a87d501 isActive = false; isCompleted = false; isCancelled = true
+withTimeout finish
+TimeoutCancellationException in launch
+current job: StandaloneCoroutine{Active}@51cc9d5d isActive = true; isCompleted = false; isCancelled = false
+result = error
+withTimeout finished
+coroutine finish
+```
+
+```kotlin
+fun Job.state() = "$this isActive = $isActive; isCompleted = $isCompleted; isCancelled = $isCancelled"  
+CoroutineScope(Dispatchers.Default).launch {  
+    println("coroutine start")  
+    println("current job: ${coroutineContext.job.state()}")  
+    val result: String? = try {  
+        withTimeoutOrNull(1300) {  
+            println("withTimeout start")  
+            println("current job: ${coroutineContext.job.state()}")  
+            try {  
+                repeat(1000) { i ->  
+                    println("I'm sleeping $i ...")  
+                    delay(500)  
+                }  
+            } catch (e: TimeoutCancellationException){  
+                println("TimeoutCancellationException in withTimeout")  
+                println("current job: ${coroutineContext.job.state()}")  
+            }  
+            println("withTimeout finish")  
+            return@withTimeoutOrNull "RESULT"  
+        }  
+    } catch (e: TimeoutCancellationException){  
+        println("TimeoutCancellationException in launch")  
+        println("current job: ${coroutineContext.job.state()}")  
+        "error"  
+    }  
+    println("result = $result")  
+    println("withTimeout finished")  
+    delay(100) // current Job is not cancelled! We can continue it.  
+    println("coroutine finish")  
+}.join()
+```
+```output
+coroutine start
+current job: StandaloneCoroutine{Active}@5e496faa isActive = true; isCompleted = false; isCancelled = false
+withTimeout start
+current job: TimeoutCoroutine(timeMillis=1300){Active}@1f3e9bc5 isActive = true; isCompleted = false; isCancelled = false
+I'm sleeping 0 ...
+I'm sleeping 1 ...
+I'm sleeping 2 ...
+TimeoutCancellationException in withTimeout
+current job: TimeoutCoroutine(timeMillis=1300){Cancelling}@1f3e9bc5 isActive = false; isCompleted = false; isCancelled = true
+withTimeout finish
+result = null
+withTimeout finished
+coroutine finish
+```
+
+**The timeout event is asynchronous with respect to the code running in the block** and may happen at any time, even right before the return from inside the timeout `block`. Keep this in mind if you open or acquire some resource inside the `block` that needs closing or release outside the `block`.
+
+```kotlin
+var acquired = 0  
+  
+class Resource {  
+    init { acquired++ } // Acquire the resource  
+    fun close() { acquired-- } // Release the resource  
+}  
+  
+fun main() {  
+    runBlocking {  
+        repeat(10_000) { // Launch 10K coroutines  
+            launch {  
+                val resource = withTimeout(60) { // Timeout of 60 ms  
+                    delay(50) // Delay for 50 ms  
+                    Resource() // Acquire a resource and return it from withTimeout block  
+                } // TimeoutCancellationException here: AFTER Resource instantiation, BEFORE return it from withTimeout  
+                resource.close() // Release the resource: if Exception happens, it won't be released
+            }
+        }
+    }
+    // Outside runBlocking all coroutines have completed  
+    println(acquired) // Print the number of resources still acquired  
+}
+```
+```output
+134
+```
+
+How to fix this:
+
+```kotlin
+var acquired = 0  
+  
+class Resource {  
+    init { acquired++ } // Acquire the resource  
+    fun close() { acquired-- } // Release the resource  
+}  
+  
+fun main() {  
+    runBlocking {  
+        repeat(10_000) { // Launch 10K coroutines  
+            launch {  
+                var resource: Resource? = null // Not acquired yet  
+                try {  
+                    withTimeout(60) { // Timeout of 60 ms  
+                        delay(50) // Delay for 50 ms  
+                        resource = Resource() // Store a resource to the variable if acquired  
+                    }  
+                    // We can do something else with the resource here  
+                } finally {  
+                    resource?.close() // Release the resource if it was acquired
+                }  
+            }  
+        }    }    // Outside runBlocking all coroutines have completed  
+    println(acquired) // Print the number of resources still acquired  
+}
+```
 
 ### [**CompletableJob**](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-completable-job/index.html)
 
