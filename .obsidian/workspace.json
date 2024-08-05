@@ -42,19 +42,9 @@
                 "source": false
               }
             }
-          },
-          {
-            "id": "abea73aed2b6687b",
-            "type": "leaf",
-            "state": {
-              "type": "release-notes",
-              "state": {
-                "currentVersion": "1.6.3"
-              }
-            }
           }
         ],
-        "currentTab": 3
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -181,7 +171,7 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "abea73aed2b6687b",
+  "active": "e67e34cdd98d894b",
   "lastOpenFiles": [
     "Topics/Concurrency/Concurrency.md",
     "Topics/04_11_Functions/Lambdas.md",
