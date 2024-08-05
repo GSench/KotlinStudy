@@ -37,7 +37,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Coroutines/Coroutines.md",
+                "file": "Topics/Collections/LinkedList.md",
                 "mode": "source",
                 "source": false
               }
@@ -110,7 +110,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/Coroutines/Coroutines.md",
+                "file": "Topics/Collections/LinkedList.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +127,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/Coroutines/Coroutines.md",
+                "file": "Topics/Collections/LinkedList.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -150,7 +150,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/Coroutines/Coroutines.md"
+                "file": "Topics/Collections/LinkedList.md"
               }
             }
           }
@@ -173,11 +173,16 @@
   },
   "active": "e67e34cdd98d894b",
   "lastOpenFiles": [
+    "Topics/Collections/LinkedHashTable.md",
+    "Topics/Collections/LinkedList.md",
+    "Topics/Collections/LinkedList.md",
+    "Topics/Collections",
+    "Topics/Coroutines/Coroutines.md",
+    "Topics/Collections",
     "Topics/Concurrency/Concurrency.md",
     "Topics/04_11_Functions/Lambdas.md",
     "Topics/Concurrency/JavaThread.md",
     "Topics/06_NullSafety&TypeCast/null_safety.md",
-    "Topics/Coroutines/Coroutines.md",
     "Topics/Coroutines/Flows.md",
     "Topics/08_Exceptions/Exceptions.md",
     "Topics/04_11_Functions/Functions.md",
@@ -204,11 +209,9 @@
     "Topics/Concurrency/img/concurrency-vs-parallelism-2.png.crdownload",
     "Books/Library.md",
     "Topics/Concurrency/img",
-    "Topics/Concurrency",
     "Topics/04_11_Functions/Extensions.md",
     "Topics/03_Basics/Basics.md",
     "Topics/02_CodingConventions/Coding conventions﻿.md",
-    "Topics/01_HelloWorld/notes/compiler.md",
-    "Books/kotlin-reference.pdf"
+    "Topics/01_HelloWorld/notes/compiler.md"
   ]
 }
