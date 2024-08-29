@@ -1,6 +1,6 @@
 # LinkedHashTable
 
-#Kotlin
+#TODO Debug
 
 ```kotlin
 private class LinkedHashTable<T> {  

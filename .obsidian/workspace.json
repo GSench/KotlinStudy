@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Concurrency/JavaThread.md",
+                "file": "Topics/Collections/LinkedList.md",
                 "mode": "source",
                 "source": false
               }
@@ -25,7 +25,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/04_11_Functions/Lambdas.md",
+                "file": "Topics/Collections/LinkedHashTable.md",
                 "mode": "source",
                 "source": false
               }
@@ -37,7 +37,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Collections/LinkedList.md",
+                "file": "Topics/Coroutines/Coroutines.md",
                 "mode": "source",
                 "source": false
               }
@@ -110,7 +110,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/Collections/LinkedList.md",
+                "file": "Topics/Coroutines/Coroutines.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +127,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/Collections/LinkedList.md",
+                "file": "Topics/Coroutines/Coroutines.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -150,16 +150,16 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/Collections/LinkedList.md"
+                "file": "Topics/Coroutines/Coroutines.md"
               }
             }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -173,22 +173,29 @@
   },
   "active": "e67e34cdd98d894b",
   "lastOpenFiles": [
+    "Topics/Collections/LinkedList.md",
     "Topics/Collections/LinkedHashTable.md",
-    "Topics/Collections/LinkedList.md",
-    "Topics/Collections/LinkedList.md",
-    "Topics/Collections",
+    "Topics/04_11_Functions/Lambdas.md",
+    "Topics/Collections/MutableList.md",
     "Topics/Coroutines/Coroutines.md",
+    "Topics/07_Tuples/Tuples.md",
+    "Topics/Delegates/SwitchDelegate.md",
+    "Notes/Kotlin Tips & Tricks.md",
+    "Topics/Delegates",
+    "Topics/Concurrency/JavaThread.md",
+    "Notes/KotlinCheetsheet.md",
+    "Notes",
+    "untitled folder",
+    "Topics/Concurrency/MemoryModel.md",
+    "Topics/Collections",
     "Topics/Collections",
     "Topics/Concurrency/Concurrency.md",
-    "Topics/04_11_Functions/Lambdas.md",
-    "Topics/Concurrency/JavaThread.md",
     "Topics/06_NullSafety&TypeCast/null_safety.md",
     "Topics/Coroutines/Flows.md",
     "Topics/08_Exceptions/Exceptions.md",
     "Topics/04_11_Functions/Functions.md",
     "Topics/09_Inheritance/Inheritance﻿.md",
     "Topics/05_Classes/Classes.md",
-    "Topics/Concurrency/MemoryModel.md",
     "Topics/Serialization/Serialization.md",
     "Topics/Concurrency/img/thread-signaling-1.png",
     "Topics/Serialization/img/2024-05-10_03-45-44.png",
@@ -204,11 +211,8 @@
     "Topics/Concurrency/img/ThreadLifecycle.png",
     "Topics/Concurrency/img/concurrency-vs-parallelism-4.png",
     "Topics/Concurrency/img/concurrency-vs-parallelism-3.png",
-    "Topics/Concurrency/img/concurrency-vs-parallelism-3.png.crdownload",
     "Topics/Concurrency/img/concurrency-vs-parallelism-2.png",
-    "Topics/Concurrency/img/concurrency-vs-parallelism-2.png.crdownload",
     "Books/Library.md",
-    "Topics/Concurrency/img",
     "Topics/04_11_Functions/Extensions.md",
     "Topics/03_Basics/Basics.md",
     "Topics/02_CodingConventions/Coding conventions﻿.md",

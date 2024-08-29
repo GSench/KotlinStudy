@@ -71,7 +71,7 @@ a = 1
 b = a + c // (a = 1) and (c = b + 1) must be executed before this action
 ```
 
-*Intra-thread semantics* are violated if some JVM implementation execute the actions in the order:
+*Intra-thread semantics* are violated if some (weired, incorrect) JVM implementation execute the actions in the order:
 
 ```kotlin
 var a = 0
@@ -91,7 +91,7 @@ In fact *intra-thread semantics* prescribe read-write order **within a thread**:
 a = 1
 // ... some actions, NOT read/write a
 // ... some actions, NOT read/write a
-b = a + 1 // (a = 1) MAY BE executed ANYWHEN in the interval [a=1 action; read a action)
+b = a + 1 // (a = 1) MAY BE executed ANYWHEN in the interval (a=1 action; read a action)
 ```
 
 To determine if the actions of each thread in an execution are legal (according *intra-thread semantics*), we simply evaluate the implementation of each thread as it would be performed in a single-threaded context, as defined in the rest of the memory model specification.

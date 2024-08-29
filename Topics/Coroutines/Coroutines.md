@@ -670,7 +670,7 @@ public open class JobSupport (active: Boolean) : Job, ChildJob, ParentJob {
 ```
 
 
-#### Building `Job` relationships with `launch{context}`
+#### Building `Job` relationships with `launch(context){}`
 
 We can establish parent-child relationships with `context` parameter of `lauch {}` coroutine builder:
 
@@ -686,7 +686,7 @@ val childJob = someOtherScope.launch(context = parentJob) {...}
 
 Note that in such case, no other `CoroutineContext` elements are inherited from `someScope`, as `parentJob` is the `Job` only.
 
-We can achieve the same results with the previouse approach:
+We can achieve the same results with the previous approach:
 
 ```kotlin
 val parentJob = someScope.launch {
