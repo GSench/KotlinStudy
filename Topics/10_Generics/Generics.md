@@ -1,6 +1,6 @@
 # Generics
 
-- ```kotlin
+```kotlin
   class Box<T>(t: T) {
       var value = t
   }
@@ -23,4 +23,10 @@
   
   
   
-  
+  - https://kotlinlang.org/docs/generics.html
+  - https://habr.com/ru/articles/719256/
+  - https://www.baeldung.com/kotlin/generics
+  - https://kotlinlang.ru/docs/generics.html
+  - https://habr.com/ru/companies/redmadrobot/articles/301174/
+  - https://medium.com/swlh/generics-in-kotlin-5152142e281c
+  - 

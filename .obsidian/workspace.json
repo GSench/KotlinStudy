@@ -4,47 +4,22 @@
     "type": "split",
     "children": [
       {
-        "id": "46372f598f9675c8",
+        "id": "e127e476397782c7",
         "type": "tabs",
         "children": [
           {
-            "id": "ce8c1541a42059ec",
+            "id": "769ba27f8c576b2c",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Collections/LinkedList.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "2d6d52bdf01c4133",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Topics/Collections/LinkedHashTable.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "e67e34cdd98d894b",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Topics/Coroutines/Coroutines.md",
+                "file": "Topics/Coroutines/Coroutine Notes.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -110,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/Coroutines/Coroutines.md",
+                "file": "Topics/Coroutines/Coroutine Notes.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/Coroutines/Coroutines.md",
+                "file": "Topics/Coroutines/Coroutine Notes.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -150,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/Coroutines/Coroutines.md"
+                "file": "Topics/Coroutines/Coroutine Notes.md"
               }
             }
           }
@@ -171,16 +146,19 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "e67e34cdd98d894b",
+  "active": "769ba27f8c576b2c",
   "lastOpenFiles": [
+    "Topics/Coroutines/Coroutines.md",
+    "Topics/Coroutines/Coroutine Notes.md",
+    "Topics/10_Generics/Generics.md",
+    "Topics/05_Classes/value class.md",
     "Topics/Collections/LinkedList.md",
     "Topics/Collections/LinkedHashTable.md",
+    "Notes/Kotlin Tips & Tricks.md",
     "Topics/04_11_Functions/Lambdas.md",
     "Topics/Collections/MutableList.md",
-    "Topics/Coroutines/Coroutines.md",
     "Topics/07_Tuples/Tuples.md",
     "Topics/Delegates/SwitchDelegate.md",
-    "Notes/Kotlin Tips & Tricks.md",
     "Topics/Delegates",
     "Topics/Concurrency/JavaThread.md",
     "Notes/KotlinCheetsheet.md",
@@ -215,7 +193,6 @@
     "Books/Library.md",
     "Topics/04_11_Functions/Extensions.md",
     "Topics/03_Basics/Basics.md",
-    "Topics/02_CodingConventions/Coding conventions﻿.md",
-    "Topics/01_HelloWorld/notes/compiler.md"
+    "Topics/02_CodingConventions/Coding conventions﻿.md"
   ]
 }

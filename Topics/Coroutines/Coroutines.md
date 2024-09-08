@@ -369,6 +369,8 @@ outside coroutine: CoroutineName = CoroutineName(Some name)
 
 ### Job States ✅
 
+#TODO [Sequence diagrams](https://mermaid.js.org/syntax/sequenceDiagram.html)
+
 A job has the following states:
 
 - ***New*** (optional initial state) - coroutine is created with `start=CoroutineStart.LAZY`
@@ -554,6 +556,8 @@ coroutine{Cancelled}; isActive = false; isCompleted = true; isCancelled = true
 ```
 
 ### Structured Concurrency ✅
+
+#TODO [Sequence diagrams](https://mermaid.js.org/syntax/sequenceDiagram.html)
 
 Jobs can be arranged into parent-child hierarchies where cancellation of a parent leads to immediate cancellation of all its children recursively. Failure of a child with an exception other than `CancellationException` immediately cancels its parent and, consequently, all its other children.
 
@@ -841,6 +845,8 @@ public open class JobSupport (active: Boolean) : Job, ChildJob, ParentJob {
 The further inheritance of created `Job` as the parent of the `launch`ed `Job` works like in Building `Job` relationships with `launch{context}`.
 
 #### Completion, Cancellation and Throwing in Hierarchy
+
+#TODO [Sequence diagrams](https://mermaid.js.org/syntax/sequenceDiagram.html)
 
 A parent-child relation has the following effect:
 
@@ -1189,6 +1195,8 @@ Suspends the coroutine until this `Job` is complete. This invocation resumes nor
 This suspending function is cancellable and **always** checks for a cancellation of the invoking coroutine's `Job`. If the `Job` of the invoking coroutine is *cancelled* or *completed* when this suspending function is invoked or while it is suspended, this function throws `CancellationException`. In particular, it means that a parent coroutine invoking `join` on a child coroutine throws `CancellationException` if the child had failed, since a failure of a child coroutine cancels parent by default.
 
 ### Cancel ✅
+
+#TODO [Sequence diagrams](https://mermaid.js.org/syntax/sequenceDiagram.html)
 
 - [Kotlin Guide: Cancellation and timeouts﻿](https://kotlinlang.org/docs/cancellation-and-timeouts.html#asynchronous-timeout-and-resources)
 - [Kotlin API docs: Cancel](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/cancel.html)
