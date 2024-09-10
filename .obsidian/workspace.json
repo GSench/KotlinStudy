@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Coroutines/Coroutine Notes.md",
+                "file": "Topics/03_Basics/Types/substring.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/Coroutines/Coroutine Notes.md",
+                "file": "Topics/03_Basics/Types/substring.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/Coroutines/Coroutine Notes.md",
+                "file": "Topics/03_Basics/Types/substring.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/Coroutines/Coroutine Notes.md"
+                "file": "Topics/03_Basics/Types/substring.md"
               }
             }
           }
@@ -149,6 +149,8 @@
   "active": "769ba27f8c576b2c",
   "lastOpenFiles": [
     "Topics/Coroutines/Coroutines.md",
+    "Topics/03_Basics/Types/substring.md",
+    "Topics/03_Basics/Types",
     "Topics/Coroutines/Coroutine Notes.md",
     "Topics/10_Generics/Generics.md",
     "Topics/05_Classes/value class.md",
@@ -181,7 +183,6 @@
     "Topics/Serialization/Новая папка",
     "Topics/Serialization",
     "Topics/Coroutines/img",
-    "Topics/Coroutines",
     "Topics/Concurrency/img/blocking-queue.png",
     "Topics/Concurrency/img/concurrency-models-6.png",
     "Topics/Concurrency/img/concurrency-models-3.png",
@@ -192,7 +193,6 @@
     "Topics/Concurrency/img/concurrency-vs-parallelism-2.png",
     "Books/Library.md",
     "Topics/04_11_Functions/Extensions.md",
-    "Topics/03_Basics/Basics.md",
-    "Topics/02_CodingConventions/Coding conventions﻿.md"
+    "Topics/03_Basics/Basics.md"
   ]
 }
