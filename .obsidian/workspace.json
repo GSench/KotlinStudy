@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/03_Basics/Types/substring.md",
+                "file": "Notes/KotlinCheetsheet.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Topics/03_Basics/Types/substring.md",
+                "file": "Notes/KotlinCheetsheet.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Topics/03_Basics/Types/substring.md",
+                "file": "Notes/KotlinCheetsheet.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Topics/03_Basics/Types/substring.md"
+                "file": "Notes/KotlinCheetsheet.md"
               }
             }
           }
@@ -148,15 +148,15 @@
   },
   "active": "769ba27f8c576b2c",
   "lastOpenFiles": [
-    "Topics/Coroutines/Coroutines.md",
+    "Notes/Kotlin Tips & Tricks.md",
     "Topics/03_Basics/Types/substring.md",
+    "Topics/Coroutines/Coroutines.md",
     "Topics/03_Basics/Types",
     "Topics/Coroutines/Coroutine Notes.md",
     "Topics/10_Generics/Generics.md",
     "Topics/05_Classes/value class.md",
     "Topics/Collections/LinkedList.md",
     "Topics/Collections/LinkedHashTable.md",
-    "Notes/Kotlin Tips & Tricks.md",
     "Topics/04_11_Functions/Lambdas.md",
     "Topics/Collections/MutableList.md",
     "Topics/07_Tuples/Tuples.md",

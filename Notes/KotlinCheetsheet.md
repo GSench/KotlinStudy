@@ -74,6 +74,7 @@ array.toCharArray()[i]
 .uppercaseChar(): Char
 .lowercase(): String // can return multiple characters for locale specific Char 
 .lowercaseChar(): Char
+.toInt() // ASCII code
 
 // Idioms
 chrA == chrB
