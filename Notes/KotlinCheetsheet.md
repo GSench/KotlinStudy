@@ -12,6 +12,8 @@ arrayOf<T>(vararg elements: T): Array<T>
 .size
 .isEmpty()
 .indices
+.lastIndex
+.lastElement
 
 // Functions
 .any { it == 0 } // true if contains any of
@@ -27,6 +29,7 @@ IntArray.sum()
 // Idioms
 for(v in array) {}
 for(i in array.indices) {}
+for(i in 0..array.lastIndex) {}
 for ((i, v) in array.withIndex()) {}
 array.forEach { v -> }
 array.forEachIndexed { index, element -> }
