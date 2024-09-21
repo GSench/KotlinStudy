@@ -21,10 +21,13 @@ arrayOf<T>(vararg elements: T): Array<T>
 IntArray.sum()
 .fold(1){acc, next -> acc * next} : Int // Mul all elements
 .take(n) .takeLast(n) // first/last n elements
+.slice(2..5) // subarray of range's indices
 .sorted()
 .reverse()
 .zip(otherArray): List<Pair<T,V>>
 .count{it==0}
+.minOf{ it[X] } /*equivalent to*/ .minBy{ it[X] }[X]
+.maxOf{ it[X] } /*equivalent to*/ .maxBy{ it[X] }[X]
 
 // Idioms
 for(v in array) {}
@@ -116,6 +119,7 @@ linkedList.toList()
 .sortedDescending()
 .sortedBy{f(it)}
 .sortedByDescending{f(it)}
+.sortWith(compareBy( { it[X] }, { it[Y] } )) // sort by X, Y
 .take(n)
 
 // Idioms
@@ -162,6 +166,7 @@ HashMap<Char, Int>(size)
 // Functions
 hashMap[key] = value
 .toList(): Pair<K,V>
+.getOrPut(key, { defaultValue })
 
 // Idioms
 hashMapA == hashMapB // compare contents of HashMaps
