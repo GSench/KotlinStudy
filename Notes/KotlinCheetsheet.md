@@ -7,6 +7,7 @@ IntArray(size){0}
 IntArray(11){i -> 2.pow(i)}
 intArrayOf(vararg elements: Int): IntArray
 arrayOf<T>(vararg elements: T): Array<T>
+list.toTypedArray()
 
 // Properties
 .size
@@ -88,6 +89,11 @@ chrA == chrB
 'z'-'a' //=  25: Int
 ```
 
+## Number
+
+```kotlin
+val randomInt = (0..10).random() // generated random from 0 to 10 included
+```
 ## StringBuilder
 
 ```kotlin
