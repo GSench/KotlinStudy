@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Topics/Coroutines/Coroutines.md",
+                "file": "Topics/08_Exceptions/Rich errors in Kotlin 2.4.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Coroutines"
+              "title": "Rich errors in Kotlin 2.4"
             }
           }
         ]
@@ -155,7 +155,8 @@
   },
   "active": "844ef4a136c60594",
   "lastOpenFiles": [
-    "Topics/Coroutines/Flows.md",
-    "Topics/Coroutines/Coroutines.md"
+    "Topics/Coroutines/Coroutines.md",
+    "Topics/08_Exceptions/Rich errors in Kotlin 2.4.md",
+    "Topics/Coroutines/Flows.md"
   ]
 }
